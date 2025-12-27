@@ -14,6 +14,7 @@ import SettingsPage from './pages/SettingsPage';
 import PreBuiltManager from './pages/PreBuiltManager';
 import AccessoriesManager from './pages/AccessoriesManager';
 import ReportsPage from './pages/ReportsPage';
+import OnlineOfflineManager from './pages/OnlineOfflineManager';
 const Dashboard = () => (
   <div className="space-y-6">
     <StatsGrid />
@@ -46,6 +47,7 @@ function App() {
             <Route path="/pre-built" element={<PreBuiltManager />} />
             <Route path="/accessories" element={<AccessoriesManager />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/online-offline" element={<OnlineOfflineManager />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>

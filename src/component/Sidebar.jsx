@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom'; // NavLink import kiya
-import { LayoutDashboard, ShoppingCart, Box, Monitor, MousePointer, BarChart3, Settings, X } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Box, Monitor, MousePointer, BarChart3, Settings, X, Receipt } from 'lucide-react';
 import logo from '../assets/logo.png'; // Agar aap logo image use karna chahte hain
 const SidebarItem = ({ icon, label, to }) => (
   <NavLink 
@@ -41,6 +41,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <SidebarItem icon={<Monitor size={18}/>} label="Pre-Built PC" to="/pre-built" />
           <SidebarItem icon={<MousePointer size={18}/>} label="Accessories" to="/accessories" />
           <SidebarItem icon={<BarChart3 size={18}/>} label="Reports" to="/reports" />
+          <SidebarItem icon={<Receipt size={18}/>} label="Offline Bill" to="/online-offline" />
           <SidebarItem icon={<Settings size={18}/>} label="Settings" to="/settings" />
         </nav>
       </aside>

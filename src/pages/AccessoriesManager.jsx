@@ -199,4 +199,5 @@ const AccessoriesManager = () => {
   );
 };
 
+
 export default AccessoriesManager;
