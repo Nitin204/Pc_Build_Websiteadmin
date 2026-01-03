@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Sidebar from './component/Sidebar';
 import Navbar from './component/Navbar';
 import StatsGrid from './component/StatsGrid';
 import ChartsSection from './component/ChartsSection';
 import RecentOrders from './component/RecentOrders';
 import StockAlerts from './component/StockAlerts';
-
+import Login from './pages/Login';
+import { Toaster } from 'react-hot-toast';
 // pages ke liye simple components banaye hain
 import OrdersPage from './pages/OrdersPage';
 import ProductsPage from './pages/FullAdminPCManager';
@@ -29,16 +31,27 @@ const Dashboard = () => (
 
 
 
-function App() {
+const AppContent = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin');
+    setIsLoggedIn(false);
+  };
+
+  if (!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />;
+  }
 
   return (
     <Router>
-      <div className="flex bg-[#121417] min-h-screen text-gray-200">
+      <Toaster position="top-right" reverseOrder={false} />
+      <div className="flex min-h-screen">
         <Sidebar isOpen={isOpen} setIsOpen={setIsOpen} />
         
         <main className="flex-1 lg:ml-64 p-4 lg:p-8">
-          <Navbar setIsOpen={setIsOpen} />
+          <Navbar setIsOpen={setIsOpen} onLogout={handleLogout} />
           
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -53,6 +66,14 @@ function App() {
         </main>
       </div>
     </Router>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

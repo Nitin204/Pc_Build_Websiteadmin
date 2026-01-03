@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { Wifi, WifiOff, Plus, Download, Trash2, Printer, Edit, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { useTheme } from '../context/ThemeContext';
 import Logo from '../assets/logo.png';
 
 const OfflineOnlineData = () => {
+  const { cardBg, border, text, textSecondary, isDark } = useTheme();
   const [mode, setMode] = useState("offline");
   const [offlineOrders, setOfflineOrders] = useState(() => {
     const saved = localStorage.getItem('offlineOrders');
@@ -305,47 +307,52 @@ const OfflineOnlineData = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#121212] text-white p-6">
-      <h1 className="text-2xl font-bold mb-6">Offline Order Manager</h1>
+    <div className={`min-h-screen p-6 transition-colors duration-300 ${isDark ? 'bg-[#0a0a0a] text-white' : 'bg-gray-50 text-black'}`}>
+      <h1 className={`text-2xl font-black uppercase tracking-tighter ${text}`}>
+            OFFLINE ORDER <span className="text-red-600">MANAGER</span>
+          </h1>
+      
+      {/* Theme Test Button */}
+       
 
       {/* Add Form */}
-          <div className="bg-[#1a1c1e] p-6 rounded-2xl mb-6 border border-gray-800">
-            <h2 className="text-lg font-semibold mb-4">
+          <div className={`p-6 rounded-2xl mt-10 ${cardBg} ${border}`}>
+            <h2 className={`text-lg font-semibold mb-4 ${text}`}>
               Add Offline Order
             </h2>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Customer Name</label>
+                <label className={`block text-xs mb-1 ${textSecondary}`}>Customer Name</label>
                 <input
                   type="text"
                   name="customer"
                   value={formData.customer}
                   onChange={handleChange}
                   placeholder="Customer Name"
-                  className="bg-[#121212] p-3 rounded-lg border border-gray-700 w-full"
+                  className={`p-3 rounded-lg w-full ${cardBg} ${border} ${text}`}
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Email</label>
+                <label className={`block text-xs mb-1 ${textSecondary}`}>Email</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Email"
-                  className="bg-[#121212] p-3 rounded-lg border border-gray-700 w-full"
+                  className={`p-3 rounded-lg w-full ${cardBg} ${border} ${text}`}
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Payment Mode</label>
+                <label className={`block text-xs mb-1 ${textSecondary}`}>Payment Mode</label>
                 <select
                   name="payment"
                   value={formData.payment}
                   onChange={handleChange}
-                  className="bg-[#121212] p-3 rounded-lg border border-gray-700 w-full"
+                  className={`p-3 rounded-lg w-full ${cardBg} ${border} ${text}`}
                 >
                   <option value="">Select Payment Mode</option>
                   {paymentModes.map((mode, index) => (
@@ -357,12 +364,12 @@ const OfflineOnlineData = () => {
 
             {/* Product Selection Section */}
             <div className="mt-6">
-              <label className="block text-gray-400 text-sm mb-3">Select Products with Quantity & Amount</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-64 overflow-y-auto bg-[#0f0f0f] p-4 rounded-lg border border-gray-700">
+              <label className={`block text-sm mb-3 ${textSecondary}`}>Select Products with Quantity & Amount</label>
+              <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 max-h-64 overflow-y-auto p-4 rounded-lg ${cardBg} ${border}`}>
                 {productList.map((product, index) => {
                   const isSelected = formData.productDetails[product];
                   return (
-                    <div key={index} className="border border-gray-600 rounded-lg p-3 bg-gray-800">
+                    <div key={index} className={`rounded-lg p-3 ${cardBg} ${border}`}>
                       <label className="flex items-center space-x-2 cursor-pointer mb-2">
                         <input
                           type="checkbox"
@@ -379,7 +386,7 @@ const OfflineOnlineData = () => {
                           }}
                           className="text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500"
                         />
-                        <span className="text-sm font-medium text-gray-200">{product}</span>
+                        <span className={`text-sm font-medium ${text}`}>{product}</span>
                       </label>
                       {isSelected && (
                         <div className="grid grid-cols-2 gap-2 mt-2">
@@ -401,7 +408,7 @@ const OfflineOnlineData = () => {
                               
                               setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2)});
                             }}
-                            className="bg-[#121212] p-2 rounded border border-gray-600 text-sm"
+                            className={`p-2 rounded border text-sm ${cardBg} ${border} ${text}`}
                           />
                           <input
                             type="number"
@@ -421,7 +428,7 @@ const OfflineOnlineData = () => {
                               
                               setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2)});
                             }}
-                            className="bg-[#121212] p-2 rounded border border-gray-600 text-sm"
+                            className={`p-2 rounded border text-sm ${cardBg} ${border} ${text}`}
                           />
                         </div>
                       )}
@@ -439,55 +446,55 @@ const OfflineOnlineData = () => {
             {/* Order Details */}
             <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-4 mt-6">
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Total Amount (Auto)</label>
+                <label className={`block text-xs mb-1 ${textSecondary}`}>Total Amount (Auto)</label>
                 <input
                   type="number"
                   name="amount"
                   value={formData.amount}
                   readOnly
                   placeholder="Total Amount (Auto)"
-                  className="bg-[#121212] p-3 rounded-lg border border-gray-700 w-full opacity-60 font-bold text-blue-400"
+                  className={`p-3 rounded-lg border w-full opacity-60 font-bold text-blue-400 ${cardBg} ${border}`}
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Discount %</label>
+                <label className={`block text-xs mb-1 ${textSecondary}`}>Discount %</label>
                 <input
                   type="number"
                   name="discount"
                   value={formData.discount}
                   onChange={handleChange}
                   placeholder="Discount %"
-                  className="bg-[#121212] p-3 rounded-lg border border-gray-700 w-full"
+                  className={`p-3 rounded-lg border w-full ${cardBg} ${border} ${text}`}
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 text-xs mb-1">GST %</label>
+                <label className={`block text-xs mb-1 ${textSecondary}`}>GST %</label>
                 <input
                   type="number"
                   name="gst"
                   value={formData.gst}
                   onChange={handleChange}
                   placeholder="GST %"
-                  className="bg-[#121212] p-3 rounded-lg border border-gray-700 w-full"
+                  className={`p-3 rounded-lg border w-full ${cardBg} ${border} ${text}`}
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Final Total (Auto)</label>
+                <label className={`block text-xs mb-1 ${textSecondary}`}>Final Total (Auto)</label>
                 <input
                   type="number"
                   name="total"
                   value={formData.total}
                   readOnly
                   placeholder="Final Total (Auto)"
-                  className="bg-[#121212] p-3 rounded-lg border border-gray-700 opacity-60 w-full font-bold text-green-400"
+                  className={`p-3 rounded-lg border opacity-60 w-full font-bold text-green-400 ${cardBg} ${border}`}
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 text-xs mb-1">Date & Time (Auto)</label>
+                <label className={`block text-xs mb-1 ${textSecondary}`}>Date & Time (Auto)</label>
                 <input
                   type="text"
                   name="dateTime"
@@ -500,7 +507,7 @@ const OfflineOnlineData = () => {
                     hour12: true 
                   })}
                   readOnly
-                  className="bg-[#121212] p-3 rounded-lg border border-gray-700 w-full opacity-60"
+                  className={`p-3 rounded-lg border w-full opacity-60 ${cardBg} ${border} ${text}`}
                 />
               </div>
             </div>
@@ -524,9 +531,9 @@ const OfflineOnlineData = () => {
           </div>
 
           {/* Table */}
-          <div className="bg-[#1a1c1e] p-6 rounded-2xl border border-gray-800">
+          <div className={`p-6 rounded-2xl ${cardBg} ${border}`}>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-              <h2 className="text-lg font-semibold">Offline Orders</h2>
+              <h2 className={`text-lg font-semibold ${text}`}>Offline Orders</h2>
               <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -535,7 +542,7 @@ const OfflineOnlineData = () => {
                     placeholder="Search orders..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-[#121212] pl-10 pr-4 py-2 rounded-lg border border-gray-700 text-sm w-full md:w-64"
+                    className={`pl-10 pr-4 py-2 rounded-lg text-sm w-full md:w-64 ${cardBg} ${border} ${text}`}
                   />
                 </div>
                 <button
@@ -550,7 +557,7 @@ const OfflineOnlineData = () => {
             {/* Desktop Table */}
             <div className="hidden md:block">
               <table className="w-full text-sm">
-                <thead className="text-gray-400 border-b border-gray-700">
+                <thead className={`border-b ${border} ${textSecondary}`}>
                   <tr>
                     <th className="text-left py-2">ID</th>
                     <th className="text-left py-2">Customer</th>
@@ -574,7 +581,7 @@ const OfflineOnlineData = () => {
                     o.product.toLowerCase().includes(searchTerm.toLowerCase())
                   ).length === 0 && (
                     <tr>
-                      <td colSpan="12" className="py-4 text-center text-gray-500">
+                      <td colSpan="12" className={`py-4 text-center ${textSecondary}`}>
                         {searchTerm ? 'No orders found matching your search' : 'No offline orders added'}
                       </td>
                     </tr>
@@ -586,16 +593,16 @@ const OfflineOnlineData = () => {
                     o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     o.product.toLowerCase().includes(searchTerm.toLowerCase())
                   ).map((o) => (
-                    <tr key={o.id} className="border-b border-gray-800">
-                      <td className="py-2">{o.id}</td>
-                      <td>{o.customer}</td>
-                      <td>{o.email}</td>
-                      <td>{o.product}</td>
-                      <td>{o.qty}</td>
-                      <td>₹ {o.amount}</td>
-                      <td>{o.discount || 0}%</td>
-                      <td>{o.gst || 0}%</td>
-                      <td>{new Date(o.dateTime).toLocaleString('en-IN', { 
+                    <tr key={o.id} className={`border-b ${border}`}>
+                      <td className={`py-2 ${text}`}>{o.id}</td>
+                      <td className={text}>{o.customer}</td>
+                      <td className={textSecondary}>{o.email}</td>
+                      <td className={textSecondary}>{o.product}</td>
+                      <td className={text}>{o.qty}</td>
+                      <td className={text}>₹ {o.amount}</td>
+                      <td className={textSecondary}>{o.discount || 0}%</td>
+                      <td className={textSecondary}>{o.gst || 0}%</td>
+                      <td className={textSecondary}>{new Date(o.dateTime).toLocaleString('en-IN', { 
                         year: 'numeric', 
                         month: '2-digit', 
                         day: '2-digit', 
@@ -603,7 +610,7 @@ const OfflineOnlineData = () => {
                         minute: '2-digit',
                         hour12: true 
                       })}</td>
-                      <td>{o.payment}</td>
+                      <td className={textSecondary}>{o.payment}</td>
                       <td>
                         <div className="flex gap-2">
                           <button
@@ -626,7 +633,7 @@ const OfflineOnlineData = () => {
                           </button>
                         </div>
                       </td>
-                      <td className="font-bold text-lg">₹ {o.total}</td>
+                      <td className={`font-bold text-lg ${text}`}>₹ {o.total}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -641,7 +648,7 @@ const OfflineOnlineData = () => {
                 o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 o.product.toLowerCase().includes(searchTerm.toLowerCase())
               ).length === 0 && (
-                <div className="py-4 text-center text-gray-500">
+                <div className={`py-4 text-center ${textSecondary}`}>
                   {searchTerm ? 'No orders found matching your search' : 'No offline orders added'}
                 </div>
               )}
@@ -652,24 +659,24 @@ const OfflineOnlineData = () => {
                 o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 o.product.toLowerCase().includes(searchTerm.toLowerCase())
               ).map((o) => (
-                <div key={o.id} className="bg-[#121212] p-4 rounded-lg border border-gray-700">
+                <div key={o.id} className={`p-4 rounded-lg ${cardBg} ${border}`}>
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h3 className="font-bold text-lg">{o.id}</h3>
-                      <p className="text-gray-400 text-sm">{o.customer}</p>
+                      <h3 className={`font-bold text-lg ${text}`}>{o.id}</h3>
+                      <p className={`text-sm ${textSecondary}`}>{o.customer}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-green-400 text-lg">₹ {o.total}</p>
-                      <p className="text-gray-400 text-xs">{o.payment}</p>
+                      <p className={`font-bold text-lg ${isDark ? 'text-green-400' : 'text-green-600'}`}>₹ {o.total}</p>
+                      <p className={`text-xs ${textSecondary}`}>{o.payment}</p>
                     </div>
                   </div>
                   
                   <div className="space-y-2 text-sm">
-                    <p><span className="text-gray-400">Email:</span> {o.email}</p>
-                    <p><span className="text-gray-400">Product:</span> {o.product}</p>
-                    <p><span className="text-gray-400">Qty:</span> {o.qty} | <span className="text-gray-400">Amount:</span> ₹{o.amount}</p>
-                    <p><span className="text-gray-400">Discount:</span> {o.discount || 0}% | <span className="text-gray-400">GST:</span> {o.gst || 0}%</p>
-                    <p className="text-gray-400 text-xs">{new Date(o.dateTime).toLocaleString('en-IN', { 
+                    <p className={textSecondary}><span>Email:</span> <span className={text}>{o.email}</span></p>
+                    <p className={textSecondary}><span>Product:</span> <span className={text}>{o.product}</span></p>
+                    <p className={textSecondary}><span>Qty:</span> <span className={text}>{o.qty}</span> | <span>Amount:</span> <span className={text}>₹{o.amount}</span></p>
+                    <p className={textSecondary}><span>Discount:</span> <span className={text}>{o.discount || 0}%</span> | <span>GST:</span> <span className={text}>{o.gst || 0}%</span></p>
+                    <p className={`text-xs ${textSecondary}`}>{new Date(o.dateTime).toLocaleString('en-IN', { 
                       year: 'numeric', 
                       month: '2-digit', 
                       day: '2-digit', 
@@ -679,7 +686,7 @@ const OfflineOnlineData = () => {
                     })}</p>
                   </div>
                   
-                  <div className="flex gap-2 mt-3 pt-3 border-t border-gray-700">
+                  <div className={`flex gap-2 mt-3 pt-3 border-t ${border}`}>
                     <button
                       onClick={() => editOrder(o)}
                       className="flex-1 bg-yellow-600 px-3 py-2 rounded text-sm flex items-center justify-center gap-1"

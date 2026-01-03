@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { SalesTrend, CategoryBars } from '../pages/DashboardCharts';
+import { useTheme } from '../context/ThemeContext';
 
 const ChartsSection = () => {
   const [timeRange, setTimeRange] = useState('30D');
+  const { cardBg, border, textSecondary, isDark } = useTheme();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
       {/* Sales Trend Card */}
-      <div className="bg-[#1a1c1e] p-6 rounded-2xl border border-gray-800 shadow-inner">
+      <div className={`p-6 rounded-2xl shadow-inner ${cardBg} ${border}`}>
         <div className="flex justify-between items-center mb-6">
-          <h4 className="text-sm font-bold text-gray-400 uppercase tracking-tighter">
+          <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>
             Sales Trend
           </h4>
           
           {/* Time Filter Buttons */}
-          <div className="flex bg-[#121417] p-1 rounded-lg border border-gray-800">
+          <div className={`flex p-1 rounded-lg ${isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-100 border-gray-200'} ${border}`}>
             {['7D', '30D', '12M'].map((range) => (
               <button
                 key={range}
@@ -36,9 +38,9 @@ const ChartsSection = () => {
       </div>
 
       {/* Top Categories Card */}
-      <div className="bg-[#1a1c1e] p-6 rounded-2xl border border-gray-800 shadow-inner">
+      <div className={`p-6 rounded-2xl shadow-inner ${cardBg} ${border}`}>
         <div className="flex justify-between items-center mb-6">
-          <h4 className="text-sm font-bold text-gray-400 uppercase tracking-tighter">
+          <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>
             Top Selling Categories
           </h4>
         </div>

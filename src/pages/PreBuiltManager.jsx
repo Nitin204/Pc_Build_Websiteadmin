@@ -1,10 +1,12 @@
-import React, { useState, useRef } from 'react'; // useRef add kiya gaya
+import React, { useState, useRef } from 'react';
 import { 
   Gamepad2, Bot, Building2, Camera, TrendingUp, 
   Edit, Save, Plus, Trash2, X, Laptop, Image as ImageIcon, Upload 
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const PreBuiltManager = () => {
+  const { cardBg, border, text, textSecondary, isDark } = useTheme();
   const [selectedCat, setSelectedCat] = useState('GAMING');
   const [budget, setBudget] = useState(250000);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,14 +88,14 @@ const PreBuiltManager = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-8 animate-in fade-in duration-500 p-2 sm:p-4  min-h-screen text-white">
+    <div className="space-y-4 sm:space-y-8 animate-in fade-in duration-500 p-2 sm:p-4 min-h-screen">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4  p-4 sm:p-6 rounded-2xl  shadow-xl">
+      <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 sm:p-6 rounded-2xl shadow-xl ${cardBg} ${border}`}>
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tighter">
+          <h1 className={`text-xl sm:text-2xl font-black uppercase tracking-tighter ${text}`}>
           Pre-Built <span className="text-red-600">PC </span>
           </h1>
-          <p className="text-gray-500 text-xs sm:text-sm">Configure user-end PC selector settings</p>
+          <p className={`text-xs sm:text-sm ${textSecondary}`}>Configure user-end PC selector settings</p>
         </div>
         <button 
           onClick={() => { setFormData({...formData, category: selectedCat}); setIsModalOpen(true); }}
@@ -104,7 +106,7 @@ const PreBuiltManager = () => {
       </div>
 
       {/* Category Selection */}
-      <div className="bg-[#1a1c1e] p-4 sm:p-8 rounded-3xl border border-gray-800">
+      <div className={`p-4 sm:p-8 rounded-3xl ${cardBg} ${border}`}>
         <h3 className="text-red-600 text-center font-bold mb-6 sm:mb-8 tracking-widest text-xs uppercase">Edit Categories</h3>
         <div className="flex flex-wrap justify-center gap-4 sm:gap-8 md:gap-16">
           {categories.map((cat) => (
@@ -113,10 +115,10 @@ const PreBuiltManager = () => {
               onClick={() => setSelectedCat(cat.id)}
               className="flex flex-col items-center gap-2 sm:gap-4 cursor-pointer group"
             >
-              <div className={`p-3 sm:p-4 rounded-2xl transition-all duration-300 ${selectedCat === cat.id ? 'text-red-600 scale-110 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : 'text-white hover:text-red-400 opacity-60'}`}>
+              <div className={`p-3 sm:p-4 rounded-2xl transition-all duration-300 ${selectedCat === cat.id ? 'text-red-600 scale-110 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : `${text} hover:text-red-400 opacity-60`}`}>
                 {React.cloneElement(cat.icon, { size: 24 })}
               </div>
-              <span className={`text-[9px] sm:text-[10px] font-black tracking-widest ${selectedCat === cat.id ? 'text-red-600 border-b-2 border-red-600' : 'text-white'}`}>
+              <span className={`text-[9px] sm:text-[10px] font-black tracking-widest ${selectedCat === cat.id ? 'text-red-600 border-b-2 border-red-600' : text}`}>
                 {cat.label}
               </span>
             </div>
@@ -126,7 +128,7 @@ const PreBuiltManager = () => {
 
       {/* Budget & Components */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-        <div className="bg-[#1a1c1e] p-4 sm:p-8 rounded-3xl border border-gray-800 space-y-4 sm:space-y-6">
+        <div className={`p-4 sm:p-8 rounded-3xl space-y-4 sm:space-y-6 ${cardBg} ${border}`}>
           <h3 className="text-red-600 font-bold tracking-widest text-xs uppercase">Budget Settings ({selectedCat})</h3>
           <div className="space-y-4">
             <input 
@@ -139,18 +141,18 @@ const PreBuiltManager = () => {
               className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-red-600"
             />
             <div className="text-center">
-              <span className="text-xl sm:text-2xl font-black text-white">₹ {Number(budget).toLocaleString()}/-</span>
+              <span className={`text-xl sm:text-2xl font-black ${text}`}>₹ {Number(budget).toLocaleString()}/-</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 sm:gap-4 pt-4 border-t border-gray-800">
-            <div className="bg-[#121417] p-3 sm:p-4 rounded-2xl border border-gray-800">
-              <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase mb-1">Min Budget</p>
-              <input type="number" value={budgetLimits.min} onChange={(e) => setBudgetLimits({...budgetLimits, min: e.target.value})} className="bg-transparent text-white font-bold w-full outline-none text-sm" />
+          <div className={`grid grid-cols-2 gap-2 sm:gap-4 pt-4 border-t ${border}`}>
+            <div className={`p-3 sm:p-4 rounded-2xl ${cardBg} ${border}`}>
+              <p className={`text-[9px] sm:text-[10px] font-bold uppercase mb-1 ${textSecondary}`}>Min Budget</p>
+              <input type="number" value={budgetLimits.min} onChange={(e) => setBudgetLimits({...budgetLimits, min: e.target.value})} className={`bg-transparent font-bold w-full outline-none text-sm ${text}`} />
             </div>
-            <div className="bg-[#121417] p-3 sm:p-4 rounded-2xl border border-gray-800">
-              <p className="text-[9px] sm:text-[10px] text-gray-500 font-bold uppercase mb-1">Max Budget</p>
-              <input type="number" value={budgetLimits.max} onChange={(e) => setBudgetLimits({...budgetLimits, max: e.target.value})} className="bg-transparent text-white font-bold w-full outline-none text-sm" />
+            <div className={`p-3 sm:p-4 rounded-2xl ${cardBg} ${border}`}>
+              <p className={`text-[9px] sm:text-[10px] font-bold uppercase mb-1 ${textSecondary}`}>Max Budget</p>
+              <input type="number" value={budgetLimits.max} onChange={(e) => setBudgetLimits({...budgetLimits, max: e.target.value})} className={`bg-transparent font-bold w-full outline-none text-sm ${text}`} />
             </div>
           </div>
         </div>
@@ -159,28 +161,28 @@ const PreBuiltManager = () => {
       </div>
 
       {/* Active Inventory */}
-      <div className="bg-[#1a1c1e] p-4 sm:p-8 rounded-3xl border border-gray-800 space-y-4 sm:space-y-6">
+      <div className={`p-4 sm:p-8 rounded-3xl space-y-4 sm:space-y-6 ${cardBg} ${border}`}>
         <h3 className="text-red-600 font-black tracking-widest text-xs uppercase italic">{selectedCat} Active Inventory</h3>
         <div className="space-y-3 sm:space-y-4">
         {products.filter(p => p.category === selectedCat).map((product) => (
-          <div key={product.id} className="flex flex-col sm:flex-row gap-4 sm:gap-6 bg-[#121417] p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-gray-800 hover:border-red-600/50 transition-all">
-            <div className="w-full sm:w-24 md:w-32 h-24 sm:h-24 md:h-32 bg-black rounded-xl sm:rounded-2xl border border-gray-800 flex items-center justify-center relative overflow-hidden">
+          <div key={product.id} className={`flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 sm:p-5 rounded-2xl sm:rounded-3xl hover:border-red-600/50 transition-all ${cardBg} ${border}`}>
+            <div className={`w-full sm:w-24 md:w-32 h-24 sm:h-24 md:h-32 rounded-xl sm:rounded-2xl flex items-center justify-center relative overflow-hidden ${isDark ? 'bg-black border-gray-800' : 'bg-gray-100 border-gray-300'} ${border}`}>
                {product.image ? (
                  <img src={product.image} alt="build" className="w-full h-full object-cover" />
                ) : (
-                 <Laptop className="text-gray-700" size={24} />
+                 <Laptop className={isDark ? 'text-gray-700' : 'text-gray-400'} size={24} />
                )}
                <div className={`absolute top-1 sm:top-2 left-1 sm:left-2 w-2 h-2 rounded-full ${categories.find(c => c.id === product.category)?.bg}`}></div>
             </div>
             <div className="flex-1 space-y-2">
               <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
-                <h4 className="text-white font-bold text-xs sm:text-sm uppercase">{product.name}</h4>
+                <h4 className={`font-bold text-xs sm:text-sm uppercase ${text}`}>{product.name}</h4>
                 <div className="flex gap-2 self-end sm:self-start">
                   <button onClick={() => openEdit(product)} className="p-1.5 sm:p-2 bg-gray-800 text-blue-400 rounded-lg hover:bg-blue-600 transition-all"><Edit size={12}/></button>
                   <button onClick={() => handleDelete(product.id)} className="p-1.5 sm:p-2 bg-gray-800 text-red-500 rounded-lg hover:bg-red-600 transition-all"><Trash2 size={12}/></button>
                 </div>
               </div>
-              <p className="text-gray-500 text-[10px] sm:text-[11px] leading-relaxed">{product.specs}</p>
+              <p className={`text-[10px] sm:text-[11px] leading-relaxed ${textSecondary}`}>{product.specs}</p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-6 pt-2">
                 <div className="flex items-center gap-3 sm:gap-4">
                   <span className="text-green-500 font-black text-sm sm:text-base">₹ {Number(product.price).toLocaleString()}</span>
@@ -246,6 +248,11 @@ const PreBuiltManager = () => {
                   <label className="text-[8px] text-gray-500 font-black uppercase">M.R.P</label>
                   <input required type="number" className="w-full bg-[#121417] border border-gray-800 rounded-lg p-1.5 text-white focus:border-red-600 outline-none opacity-60 text-xs" 
                     value={formData.originalPrice} onChange={(e) => setFormData({...formData, originalPrice: e.target.value})} />
+                </div>
+                <div>
+                  <label className="text-[8px] text-gray-500 font-black uppercase">Quantity</label>
+                  <input required type="number" className="w-full bg-[#121417] border border-gray-800 rounded-lg p-1.5 text-white focus:border-red-600 outline-none text-xs" 
+                    value={formData.quantity} onChange={(e) => setFormData({...formData, quantity: e.target.value})} placeholder="Stock Qty" />
                 </div>
               </div>
               <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-black uppercase tracking-widest transition shadow-lg text-xs">

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { PhoneCall, Mail, Calendar, MessageSquare, CheckCircle2, Clock, Search, Filter, Briefcase, FileText, Download } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 const ReportsPage = () => {
+  const { cardBg, border, text, textSecondary } = useTheme();
   const [activeTab, setActiveTab] = useState('LEADS'); // 'LEADS' or 'CAREERS'
 
   // User "Request a Call Back" data
@@ -24,13 +26,13 @@ const ReportsPage = () => {
       {/* Header & Tab Switcher */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white uppercase  tracking-tighter">
+          <h1 className={`text-2xl font-black uppercase tracking-tighter ${text}`}>
             {activeTab === 'LEADS' ? 'CALLBACK' : 'CAREER'} <span className="text-red-600">MANAGEMENT</span>
           </h1>
-          <p className="text-gray-500 text-sm">Review incoming user {activeTab.toLowerCase()} submissions</p>
+          <p className={`text-sm ${textSecondary}`}>Review incoming user {activeTab.toLowerCase()} submissions</p>
         </div>
         
-        <div className="flex bg-[#1a1c1e] p-1 rounded-xl border border-gray-800">
+        <div className={`flex p-1 rounded-xl ${cardBg} ${border}`}>
           <button 
             onClick={() => setActiveTab('LEADS')}
             className={`flex items-center gap-2 px-6 py-2 rounded-lg text-[10px] font-black transition-all ${activeTab === 'LEADS' ? 'bg-red-600 text-white' : 'text-gray-500 hover:text-white'}`}
@@ -51,19 +53,19 @@ const ReportsPage = () => {
         {activeTab === 'LEADS' ? (
           // Call Back Requests List
           leads.map((lead) => (
-            <div key={lead.id} className="bg-[#1a1c1e] p-6 rounded-3xl border border-gray-800 hover:border-red-600/30 transition-all">
+            <div key={lead.id} className={`p-6 rounded-3xl hover:border-red-600/30 transition-all ${cardBg} ${border}`}>
               <div className="flex flex-col lg:flex-row justify-between gap-6">
                 <div className="space-y-3 flex-1">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-bold text-white">{lead.name}</h3>
+                    <h3 className={`text-lg font-bold ${text}`}>{lead.name}</h3>
                     <span className={`text-[9px] font-black px-2 py-0.5 rounded-md border ${getStatusStyle(lead.status)}`}>{lead.status}</span>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-400 text-xs">
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs ${textSecondary}`}>
                     <span className="flex items-center gap-2"><PhoneCall size={14} className="text-red-600"/> {lead.phone}</span>
                     <span className="flex items-center gap-2"><Calendar size={14} className="text-red-600"/> {lead.date}</span>
                   </div>
                 </div>
-                <div className="flex-1 bg-[#121417] p-4 rounded-2xl border border-gray-800 italic text-xs text-gray-400">
+                <div className={`flex-1 p-4 rounded-2xl italic text-xs ${cardBg} ${border} ${textSecondary}`}>
                   "{lead.details}"
                 </div>
                 <button className="bg-red-600 text-white text-[10px] font-bold py-2 px-6 rounded-xl uppercase self-center">Contacted</button>
@@ -73,18 +75,18 @@ const ReportsPage = () => {
         ) : (
           // Career Applications List
           applications.map((app) => (
-            <div key={app.id} className="bg-[#1a1c1e] p-6 rounded-3xl border border-gray-800 hover:border-blue-600/30 transition-all">
+            <div key={app.id} className={`p-6 rounded-3xl hover:border-blue-600/30 transition-all ${cardBg} ${border}`}>
               <div className="flex flex-col lg:flex-row justify-between gap-6">
                 <div className="flex gap-4 min-w-[250px]">
                   <div className="w-12 h-12 bg-blue-600/10 text-blue-500 rounded-2xl flex items-center justify-center font-black">{app.name.charAt(0)}</div>
                   <div>
-                    <h3 className="text-white font-bold">{app.name}</h3>
-                    <p className="text-[10px] text-gray-500 uppercase font-mono">{app.appliedOn}</p>
+                    <h3 className={`font-bold ${text}`}>{app.name}</h3>
+                    <p className={`text-[10px] uppercase font-mono ${textSecondary}`}>{app.appliedOn}</p>
                   </div>
                 </div>
-                <div className="flex-1 bg-[#121417] p-4 rounded-2xl border border-gray-800">
+                <div className={`flex-1 p-4 rounded-2xl ${cardBg} ${border}`}>
                   <span className="text-[9px] font-black text-red-600 uppercase mb-1 block">Description</span>
-                  <p className="text-xs text-gray-400 italic">"{app.description}"</p>
+                  <p className={`text-xs italic ${textSecondary}`}>"{app.description}"</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button 
