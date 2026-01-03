@@ -100,8 +100,8 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    username: 'admin',
+    password: '12345'
   });
 
   const handleChange = (e) => {
