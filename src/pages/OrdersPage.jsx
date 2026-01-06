@@ -66,7 +66,7 @@ const OrdersPage = () => {
       </div>
 
       {/* Filters & Search */}
-      <div className={`p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center ${cardBg} ${border}`}>>
+      <div className={`p-4 rounded-2xl flex flex-col md:flex-row gap-4 items-center ${cardBg} ${border}`}>
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
           <input 

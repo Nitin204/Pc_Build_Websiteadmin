@@ -100,8 +100,8 @@ const Login = ({ onLogin }) => {
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    username: 'admin',
-    password: '12345'
+    username: '',
+    password: ''
   });
 
   const handleChange = (e) => {
@@ -115,7 +115,7 @@ const Login = ({ onLogin }) => {
 
     try {
       const response = await fetch(
-        'http://localhost:8080/api/admin/login',
+        'http://localhost:8181/api/admin/login',
         {
           method: 'POST',
           headers: {
