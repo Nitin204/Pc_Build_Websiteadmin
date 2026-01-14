@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingCart, Box, Monitor, MousePointer, BarChart3, Settings, X, Receipt } from 'lucide-react';
+import { Home, Package, Wrench, Monitor, Gamepad2, FileText, Receipt, Settings, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import logo from '../assets/logo.png';
 const SidebarItem = ({ icon, label, to }) => {
@@ -41,12 +41,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         <nav className="px-4">
-          <SidebarItem icon={<LayoutDashboard size={18}/>} label="Dashboard" to="/" />
-          <SidebarItem icon={<ShoppingCart size={18}/>} label="Orders" to="/orders" />
-          <SidebarItem icon={<Box size={18}/>} label="Built PC" to="/products" />
+          <SidebarItem icon={<Home size={18}/>} label="Dashboard" to="/" />
+          <SidebarItem icon={<Package size={18}/>} label="Orders" to="/orders" />
+          <SidebarItem icon={<Wrench size={18}/>} label="Built PC" to="/products" />
           <SidebarItem icon={<Monitor size={18}/>} label="Pre-Built PC" to="/pre-built" />
-          <SidebarItem icon={<MousePointer size={18}/>} label="Accessories" to="/accessories" />
-          <SidebarItem icon={<BarChart3 size={18}/>} label="Reports" to="/reports" />
+          <SidebarItem icon={<Gamepad2 size={18}/>} label="Accessories" to="/accessories" />
+          <SidebarItem icon={<FileText size={18}/>} label="Requests/Careers" to="/reports" />
           <SidebarItem icon={<Receipt size={18}/>} label="Offline Bill" to="/online-offline" />
           <SidebarItem icon={<Settings size={18}/>} label="Settings" to="/settings" />
         </nav>
