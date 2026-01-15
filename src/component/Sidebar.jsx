@@ -3,11 +3,12 @@ import { NavLink } from 'react-router-dom';
 import { Home, Package, Wrench, Monitor, Gamepad2, FileText, Receipt, Settings, X } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import logo from '../assets/logo.png';
-const SidebarItem = ({ icon, label, to }) => {
+const SidebarItem = ({ icon, label, to, onClick }) => {
   const { isDark } = useTheme();
   return (
     <NavLink 
       to={to}
+      onClick={onClick}
       className={({ isActive }) => `
         flex items-center gap-3 p-3 rounded-xl cursor-pointer mb-2 transition-all duration-200
         ${isActive 
@@ -41,14 +42,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         <nav className="px-4">
-          <SidebarItem icon={<Home size={18}/>} label="Dashboard" to="/" />
-          <SidebarItem icon={<Package size={18}/>} label="Orders" to="/orders" />
-          <SidebarItem icon={<Wrench size={18}/>} label="Built PC" to="/products" />
-          <SidebarItem icon={<Monitor size={18}/>} label="Pre-Built PC" to="/pre-built" />
-          <SidebarItem icon={<Gamepad2 size={18}/>} label="Accessories" to="/accessories" />
-          <SidebarItem icon={<FileText size={18}/>} label="Requests/Careers" to="/reports" />
-          <SidebarItem icon={<Receipt size={18}/>} label="Offline Bill" to="/online-offline" />
-          <SidebarItem icon={<Settings size={18}/>} label="Settings" to="/settings" />
+          <SidebarItem icon={<Home size={18}/>} label="Dashboard" to="/" onClick={() => setIsOpen(false)} />
+          <SidebarItem icon={<Package size={18}/>} label="Orders" to="/orders" onClick={() => setIsOpen(false)} />
+          <SidebarItem icon={<Wrench size={18}/>} label="Built PC" to="/products" onClick={() => setIsOpen(false)} />
+          <SidebarItem icon={<Monitor size={18}/>} label="Pre-Built PC" to="/pre-built" onClick={() => setIsOpen(false)} />
+          <SidebarItem icon={<Gamepad2 size={18}/>} label="Accessories" to="/accessories" onClick={() => setIsOpen(false)} />
+          <SidebarItem icon={<FileText size={18}/>} label="Requests/Careers" to="/reports" onClick={() => setIsOpen(false)} />
+          <SidebarItem icon={<Receipt size={18}/>} label="Offline Bill" to="/online-offline" onClick={() => setIsOpen(false)} />
+          <SidebarItem icon={<Settings size={18}/>} label="Settings" to="/settings" onClick={() => setIsOpen(false)} />
         </nav>
       </aside>
     </>

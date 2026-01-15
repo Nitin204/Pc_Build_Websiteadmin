@@ -70,10 +70,13 @@ const changeStatus = async (orderId, newStatus) => {
           ? `${addr.street || ''}, ${addr.city || ''}, ${addr.state || ''} ${addr.pincode || ''}`.trim()
           : addr || "N/A";
         
+        // Try multiple fields for customer name
+        const customerName = order.userName || order.user?.name || order.customerName || order.name || "Guest Customer";
+        
         return {
           id: order.id || `#ORD-${order._id || order.orderId}`,
-          date: new Date(order.createdAt || order.date).toLocaleDateString(),
-          customer: order.userName || order.customer || "Customer",
+          date: new Date(order.createdAt || order.orderDate || order.date).toLocaleDateString(),
+          customer: customerName,
           product: order.items?.[0]?.name || "Multiple Products",
           total: `₹ ${order.totalAmount?.toLocaleString()}`,
           status: order.status || "Processing",
