@@ -71,7 +71,7 @@ const StatsGrid = () => {
       })
       .catch(() => {
         // Fallback data
-           // Fallback data
+       
         setStats([
           { label: 'Total Orders', value: '453', active: true },
           { label: 'Online Revenue', value: '₹ 2,345,670' },
