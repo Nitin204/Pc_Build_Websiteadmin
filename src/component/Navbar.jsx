@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, LogOut, Menu, User, X, Chrome, ShieldAlert, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Navbar({ setIsOpen, onLogout }) {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -9,6 +10,7 @@ export default function Navbar({ setIsOpen, onLogout }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { isDark, toggleTheme, cardBg, border, text, textSecondary } = useTheme();
+  const navigate = useNavigate();
 
   // Admin Credentials (Real project mein ye database se check hota hai)
   const ADMIN_EMAIL = "admin@fusion.com";
@@ -80,6 +82,7 @@ export default function Navbar({ setIsOpen, onLogout }) {
 
          
           <button 
+            onClick={() => navigate('/settings')}
             className="w-8 h-8 sm:w-9 sm:h-9 bg-red-600 rounded-xl flex items-center justify-center text-white shadow-lg cursor-pointer hover:bg-red-700 transition-all active:scale-95"
             title="Admin Login"
           >

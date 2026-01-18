@@ -3,10 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Sidebar from './component/Sidebar';
 import Navbar from './component/Navbar';
-import StatsGrid from './component/StatsGrid';
-import ChartsSection from './component/ChartsSection';
-import RecentOrders from './component/RecentOrders';
-import StockAlerts from './component/StockAlerts';
+import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import { Toaster } from 'react-hot-toast';
 // pages ke liye simple components banaye hain
@@ -17,19 +14,6 @@ import PreBuiltManager from './pages/PreBuiltManager';
 import AccessoriesManager from './pages/AccessoriesManager';
 import ReportsPage from './pages/ReportsPage';
 import OnlineOfflineManager from './pages/OnlineOfflineManager';
-const Dashboard = () => (
-  <div className="space-y-6">
-    <StatsGrid />
-    <ChartsSection />
-    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-      <RecentOrders />
-      <StockAlerts />
-    </div>
-  </div>
-);
-
-
-
 
 const AppContent = () => {
   const [isOpen, setIsOpen] = useState(false);
