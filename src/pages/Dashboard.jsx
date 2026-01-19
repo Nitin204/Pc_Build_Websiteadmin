@@ -28,8 +28,8 @@ const SalesTrend = ({ range }) => {
   const currentData = dataSets[range] || dataSets['30D'];
 
   return (
-    <div className="w-full h-[220px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-[220px] min-h-[220px]" style={{ minWidth: '300px', minHeight: '220px' }}>
+      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={220}>
         <BarChart data={currentData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" vertical={false} />
           <XAxis dataKey="name" stroke="#666" fontSize={10} tickLine={false} axisLine={false} />

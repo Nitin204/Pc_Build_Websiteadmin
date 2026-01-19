@@ -33,23 +33,28 @@ const OfflineOnlineData = () => {
   const [newProduct, setNewProduct] = useState("");
   const [productList, setProductList] = useState([]);
 
-  // Fetch products from backend
+  // Fetch products and offline orders from backend
   useEffect(() => {
+    // Fetch products
     axios.get(`${API_URL}/products`)
       .then(res => {
         setProductList(res.data.map(p => p.name));
       })
-      .catch(err => console.error("Failed to fetch products:", err));
-  }, []);
+      .catch(err => {
+        console.error("Failed to fetch products:", err);
+        // Fallback to default products
+        setProductList(["RTX 4090", "Intel i9-13900K", "32GB DDR5 RAM", "1TB NVMe SSD"]);
+      });
 
-  // Fetch orders from backend
-  useEffect(() => {
-    axios.get(`${API_URL}/orders`)
+    // Fetch offline orders
+    axios.get(`${API_URL}/offline-orders`)
       .then(res => {
         setOfflineOrders(res.data);
-        localStorage.setItem('offlineOrders', JSON.stringify(res.data));
       })
-      .catch(err => console.error("Failed to fetch orders:", err));
+      .catch(err => {
+        console.error("Failed to fetch offline orders:", err);
+        // Keep localStorage data as fallback
+      });
   }, []);
 
   const addProduct = () => {
@@ -66,7 +71,10 @@ const OfflineOnlineData = () => {
       })
       .catch(err => {
         console.error(err);
-        alert("Failed to add product");
+        // Fallback to local storage
+        setProductList(prev => [...prev, newProduct.trim()]);
+        setNewProduct("");
+        alert("Product added locally (server unavailable)");
       });
   };
 
@@ -86,7 +94,16 @@ const OfflineOnlineData = () => {
       })
       .catch(err => {
         console.error(err);
-        alert("Failed to delete product");
+        // Fallback to local deletion
+        setProductList(prev => prev.filter(p => p !== productName));
+        const newDetails = { ...formData.productDetails };
+        delete newDetails[productName];
+        setFormData({
+          ...formData,
+          productDetails: newDetails,
+          product: Object.keys(newDetails).join(", "),
+        });
+        alert("Product deleted locally (server unavailable)");
       });
   };
 
@@ -128,71 +145,71 @@ const OfflineOnlineData = () => {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      customer: "",
+      email: "",
+      product: "",
+      productDetails: {},
+      qty: "",
+      amount: "",
+      discount: "",
+      gst: "",
+      total: "",
+      payment: "",
+      dateTime: new Date().toISOString().slice(0, 16)
+    });
+    setEditingOrder(null);
+  };
+
   /* Add offline order */
   const addOfflineOrder = () => {
-    if (!formData.customer || !formData.email || !formData.product || !formData.amount || !formData.payment) return;
+    if (!formData.customer || !formData.email || !formData.product || !formData.amount || !formData.payment) {
+      alert("Fill all required fields");
+      return;
+    }
 
-    // Calculate total quantity from all products
     let totalQty = 0;
     Object.values(formData.productDetails).forEach(detail => {
       totalQty += parseFloat(detail.qty) || 0;
     });
 
-    if (editingOrder) {
-      const updatedOrders = offlineOrders.map(order => 
-        order.id === editingOrder.id 
-          ? { ...formData, id: editingOrder.id, qty: totalQty, dateTime: editingOrder.dateTime }
-          : order
-      );
-      setOfflineOrders(updatedOrders);
-      localStorage.setItem('offlineOrders', JSON.stringify(updatedOrders));
-      setEditingOrder(null);
-    } else {
-      const newOrders = [
-        ...offlineOrders,
-        {
-          id: `OFF-${offlineOrders.length + 1}`,
-          ...formData,
-          qty: totalQty,
-          dateTime: new Date().toLocaleString('en-IN', { 
-            year: 'numeric', 
-            month: '2-digit', 
-            day: '2-digit', 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: true 
-          })
-        }
-      ];
-      setOfflineOrders(newOrders);
-      localStorage.setItem('offlineOrders', JSON.stringify(newOrders));
-      
-      // Save to backend
-      axios.post(`${API_URL}/orders`, newOrders[newOrders.length - 1])
-        .then(() => console.log("Order synced to server"))
-        .catch(err => console.error("Failed to sync order", err));
-    }
+    const orderData = {
+      ...formData,
+      qty: totalQty,
+      dateTime: new Date().toLocaleString('en-IN')
+    };
 
-    setFormData({ 
-      customer: "", 
-      email: "", 
-      product: "",
-      productDetails: {},
-      qty: "",
-      amount: "", 
-      discount: "", 
-      gst: "", 
-      total: "", 
-      payment: "", 
-      dateTime: new Date().toLocaleString('en-IN', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit', 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: true 
-      }) 
-    });
+    // UPDATE (PUT)
+    if (editingOrder) {
+      axios
+        .put(`${API_URL}/offline-orders/${editingOrder.id}`, orderData)
+        .then(res => {
+          setOfflineOrders(prev =>
+            prev.map(o => (o.id === editingOrder.id ? res.data : o))
+          );
+          resetForm();
+          alert("Order updated successfully");
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Update failed");
+        });
+    }
+    // ADD (POST)
+    else {
+      axios
+        .post(`${API_URL}/offline-orders`, orderData)
+        .then(res => {
+          setOfflineOrders(prev => [...prev, res.data]);
+          resetForm();
+          alert("Order added successfully");
+        })
+        .catch(err => {
+          console.error(err);
+          alert("Add failed");
+        });
+    }
   };
 
   /* Edit order */
@@ -331,9 +348,20 @@ const OfflineOnlineData = () => {
   /* Delete offline order */
   const deleteOrder = (id) => {
     if (!window.confirm("Are you sure you want to delete this order?")) return;
-    const newOrders = offlineOrders.filter((o) => o.id !== id);
-    setOfflineOrders(newOrders);
-    localStorage.setItem('offlineOrders', JSON.stringify(newOrders));
+    
+    axios.delete(`${API_URL}/offline-orders/${id}`)
+      .then(() => {
+        setOfflineOrders(prev => prev.filter(o => o.id !== id));
+        alert("Order deleted successfully");
+      })
+      .catch(err => {
+        console.error(err);
+        // Fallback to localStorage
+        const newOrders = offlineOrders.filter(o => o.id !== id);
+        setOfflineOrders(newOrders);
+        localStorage.setItem('offlineOrders', JSON.stringify(newOrders));
+        alert("Order deleted locally (server unavailable)");
+      });
   };
 
   /* Export to Excel */
@@ -356,454 +384,445 @@ const OfflineOnlineData = () => {
   };
 
   return (
-    <div className={`min-h-screen p-2 transition-colors duration-300 ${isDark ? ' text-white' : 'bg-gray-50 text-black'}`}>
-      <h1 className={`text-base sm:text-xl font-black uppercase tracking-tighter ${text}`}>
-            OFFLINE ORDER <span className="text-red-600">MANAGER</span>
-          </h1>
-      
-      {/* Theme Test Button */}
-       
+    <div className="min-w-[320px] space-y-6">
+      <h1 className={`text-xs sm:text-base lg:text-xl font-black uppercase tracking-tighter ${text} mb-4`}>
+        OFFLINE ORDER <span className="text-red-600">MANAGER</span>
+      </h1>
 
       {/* Add Form */}
-          <div className={`p-2 sm:p-4 rounded-xl mt-4 ${cardBg} ${border}`}>
-            <h2 className={`text-sm sm:text-lg font-semibold mb-3 ${text}`}>
-              Add Offline Order
-            </h2>
+      <div className={`p-2 sm:p-4 lg:p-6 rounded-xl ${cardBg} ${border}`}>
+        <h2 className={`text-xs sm:text-sm lg:text-base font-semibold mb-4 ${text}`}>
+          Add Offline Order
+        </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              <div>
-                <label className={`block text-xs mb-1 ${textSecondary}`}>Customer Name</label>
-                <input
-                  type="text"
-                  name="customer"
-                  value={formData.customer}
-                  onChange={handleChange}
-                  placeholder="Customer Name"
-                  className={`p-2 rounded-lg w-full text-sm ${cardBg} ${border} ${text}`}
-                />
-              </div>
-
-              <div>
-                <label className={`block text-xs mb-1 ${textSecondary}`}>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Email"
-                  className={`p-2 rounded-lg w-full text-sm ${cardBg} ${border} ${text}`}
-                />
-              </div>
-
-              <div>
-                <label className={`block text-xs mb-1 ${textSecondary}`}>Payment Mode</label>
-                <select
-                  name="payment"
-                  value={formData.payment}
-                  onChange={handleChange}
-                  className={`p-2 rounded-lg w-full text-sm ${cardBg} ${border} ${text}`}
-                >
-                  <option value="">Select Payment Mode</option>
-                  {paymentModes.map((mode, index) => (
-                    <option key={index} value={mode}>{mode}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Add Product Section */}
-            <div className="mb-4">
-              <h3 className={`text-sm font-semibold mb-2 ${text}`}>Add New Product</h3>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newProduct}
-                  onChange={(e) => setNewProduct(e.target.value)}
-                  placeholder="Enter product name"
-                  className={`flex-1 px-2 py-2 text-sm rounded-lg border ${border} ${cardBg} ${text}`}
-                />
-                <button
-                  onClick={addProduct}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm"
-                >
-                  +
-                </button>
-              </div>
-            </div>
-
-            {/* Product Selection Section */}
-            <div className="mt-6">
-              <label className={`block text-sm mb-3 ${textSecondary}`}>Select Products with Quantity & Amount</label>
-              <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 max-h-64 overflow-y-auto p-4 rounded-lg ${cardBg} ${border}`}>
-                {productList.map((product, index) => {
-                  const isSelected = formData.productDetails[product];
-                  return (
-                    <div key={index} className={`rounded-lg p-3 ${cardBg} ${border}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={!!isSelected}
-                            onChange={(e) => {
-                              const newDetails = {...formData.productDetails};
-                              if (e.target.checked) {
-                                newDetails[product] = {qty: 1, amount: 0};
-                              } else {
-                                delete newDetails[product];
-                              }
-                              const selectedProducts = Object.keys(newDetails).join(', ');
-                              setFormData({...formData, productDetails: newDetails, product: selectedProducts});
-                            }}
-                            className="text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500"
-                          />
-                          <span className={`text-sm font-medium ${text}`}>{product}</span>
-                        </label>
-                        <button
-                          onClick={() => deleteProduct(product)}
-                          className="text-red-500 hover:text-red-600 p-1"
-                          title="Delete product"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                      {isSelected && (
-                        <div className="grid grid-cols-2 gap-2 mt-2">
-                          <input
-                            type="number"
-                            placeholder="Qty"
-                            value={isSelected.qty || ''}
-                            onChange={(e) => {
-                              const newDetails = {...formData.productDetails};
-                              newDetails[product] = {...newDetails[product], qty: e.target.value};
-                              
-                              // Calculate total amount from all products
-                              let totalAmount = 0;
-                              Object.values(newDetails).forEach(detail => {
-                                const qty = parseFloat(detail.qty) || 0;
-                                const amount = parseFloat(detail.amount) || 0;
-                                totalAmount += qty * amount;
-                              });
-                              
-                              setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2)});
-                            }}
-                            className={`p-2 rounded border text-sm ${cardBg} ${border} ${text}`}
-                          />
-                          <input
-                            type="number"
-                            placeholder="Amount"
-                            value={isSelected.amount || ''}
-                            onChange={(e) => {
-                              const newDetails = {...formData.productDetails};
-                              newDetails[product] = {...newDetails[product], amount: e.target.value};
-                              
-                              // Calculate total amount from all products
-                              let totalAmount = 0;
-                              Object.values(newDetails).forEach(detail => {
-                                const qty = parseFloat(detail.qty) || 0;
-                                const amount = parseFloat(detail.amount) || 0;
-                                totalAmount += qty * amount;
-                              });
-                              
-                              setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2)});
-                            }}
-                            className={`p-2 rounded border text-sm ${cardBg} ${border} ${text}`}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              {formData.product && (
-                <div className="mt-2 p-2 bg-green-900/20 border border-green-700 rounded">
-                  <span className="text-green-400 text-sm">Selected: {formData.product}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Order Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-6">
-              <div>
-                <label className={`block text-xs mb-1 ${textSecondary}`}>Total Amount (Auto)</label>
-                <input
-                  type="number"
-                  name="amount"
-                  value={formData.amount}
-                  readOnly
-                  placeholder="Total Amount (Auto)"
-                  className={`p-3 rounded-lg border w-full opacity-60 font-bold text-blue-400 ${cardBg} ${border}`}
-                />
-              </div>
-
-              <div>
-                <label className={`block text-xs mb-1 ${textSecondary}`}>Discount %</label>
-                <input
-                  type="number"
-                  name="discount"
-                  value={formData.discount}
-                  onChange={handleChange}
-                  placeholder="Discount %"
-                  className={`p-3 rounded-lg border w-full ${cardBg} ${border} ${text}`}
-                />
-              </div>
-
-              <div>
-                <label className={`block text-xs mb-1 ${textSecondary}`}>GST %</label>
-                <input
-                  type="number"
-                  name="gst"
-                  value={formData.gst}
-                  onChange={handleChange}
-                  placeholder="GST %"
-                  className={`p-3 rounded-lg border w-full ${cardBg} ${border} ${text}`}
-                />
-              </div>
-
-              <div>
-                <label className={`block text-xs mb-1 ${textSecondary}`}>Final Total (Auto)</label>
-                <input
-                  type="number"
-                  name="total"
-                  value={formData.total}
-                  readOnly
-                  placeholder="Final Total (Auto)"
-                  className={`p-3 rounded-lg border opacity-60 w-full font-bold text-green-400 ${cardBg} ${border}`}
-                />
-              </div>
-
-              <div>
-                <label className={`block text-xs mb-1 ${textSecondary}`}>Date & Time (Auto)</label>
-                <input
-                  type="text"
-                  name="dateTime"
-                  value={new Date().toLocaleString('en-IN', { 
-                    year: 'numeric', 
-                    month: '2-digit', 
-                    day: '2-digit', 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: true 
-                  })}
-                  readOnly
-                  className={`p-3 rounded-lg border w-full opacity-60 ${cardBg} ${border} ${text}`}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4">
-              <button
-                onClick={addOfflineOrder}
-                className="bg-red-600 px-4 sm:px-5 py-2 rounded-lg flex gap-2 items-center justify-center text-sm sm:text-base"
-              >
-                <Plus size={16} sm:size={18} /> {editingOrder ? 'Update Order' : 'Add Order'}
-              </button>
-              
-              <button
-                onClick={() => offlineOrders.length > 0 && printOrder(offlineOrders[offlineOrders.length - 1])}
-                className="bg-blue-600 px-4 sm:px-5 py-2 rounded-lg flex gap-2 items-center justify-center text-sm sm:text-base"
-                disabled={offlineOrders.length === 0}
-              >
-                <Printer size={16} sm:size={18} /> Print Last Order
-              </button>
-            </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          <div>
+            <label className={`block text-xs mb-1 ${textSecondary}`}>Customer Name</label>
+            <input
+              type="text"
+              name="customer"
+              value={formData.customer}
+              onChange={handleChange}
+              placeholder="Customer Name"
+              className={`p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm ${cardBg} ${border} ${text}`}
+            />
           </div>
 
-          {/* Table */}
-          <div className={`p-2 sm:p-3 rounded-xl mt-4 ${cardBg} ${border}`}>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-              <h2 className={`text-lg font-semibold ${text}`}>Offline Orders</h2>
-              <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                  <input
-                    type="text"
-                    placeholder="Search orders..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className={`pl-10 pr-4 py-2 rounded-lg text-sm w-full md:w-48 ${cardBg} ${border} ${text}`}
-                  />
-                </div>
-                <button
-                  onClick={exportToExcel}
-                  className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg flex gap-2 items-center justify-center transition-colors"
-                >
-                  <Download size={18} /> Export
-                </button>
-              </div>
-            </div>
+          <div>
+            <label className={`block text-xs mb-1 ${textSecondary}`}>Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="Email"
+              className={`p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm ${cardBg} ${border} ${text}`}
+            />
+          </div>
 
-            {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
-                <thead>
-                  <tr className={`${border} border-b-2`}>
-                    <th className={`text-left py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Order ID</th>
-                    <th className={`text-left py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Customer</th>
-                    <th className={`text-left py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Email</th>
-                    <th className={`text-left py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Products</th>
-                    <th className={`text-center py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Qty</th>
-                    <th className={`text-right py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Amount</th>
-                    <th className={`text-center py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Discount</th>
-                    <th className={`text-center py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>GST</th>
-                    <th className={`text-left py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Date & Time</th>
-                    <th className={`text-left py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Payment</th>
-                    <th className={`text-center py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Actions</th>
-                    <th className={`text-right py-3 px-2 font-semibold ${textSecondary} bg-opacity-50 ${cardBg}`}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {offlineOrders.filter(o => 
-                    o.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    o.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    o.product.toLowerCase().includes(searchTerm.toLowerCase())
-                  ).length === 0 && (
-                    <tr>
-                      <td colSpan="12" className={`py-8 text-center ${textSecondary} italic`}>
-                        {searchTerm ? 'No orders found matching your search criteria' : 'No offline orders have been added yet'}
-                      </td>
-                    </tr>
-                  )}
-
-                  {offlineOrders.filter(o => 
-                    o.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    o.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    o.product.toLowerCase().includes(searchTerm.toLowerCase())
-                  ).map((o, index) => (
-                    <tr key={o.id} className={`border-b ${border} hover:bg-opacity-50 hover:${cardBg} transition-colors`}>
-                      <td className={`py-3 px-2 font-medium ${text}`}>{o.id}</td>
-                      <td className={`py-3 px-2 ${text}`}>{o.customer}</td>
-                      <td className={`py-3 px-2 ${textSecondary} text-xs`}>{o.email}</td>
-                      <td className={`py-3 px-2 ${textSecondary} max-w-32 truncate`} title={o.product}>{o.product}</td>
-                      <td className={`py-3 px-2 text-center ${text} font-medium`}>{o.qty}</td>
-                      <td className={`py-3 px-2 text-right ${text} font-medium`}>₹{parseFloat(o.amount).toLocaleString()}</td>
-                      <td className={`py-3 px-2 text-center ${textSecondary}`}>{o.discount || 0}%</td>
-                      <td className={`py-3 px-2 text-center ${textSecondary}`}>{o.gst || 0}%</td>
-                      <td className={`py-3 px-2 ${textSecondary} text-xs`}>{o.dateTime || 'N/A'}</td>
-                      <td className={`py-3 px-2 ${textSecondary}`}>
-                        <span className={`px-2 py-1 rounded-full text-xs ${o.payment === 'Cash' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
-                          {o.payment}
-                        </span>
-                      </td>
-                      <td className="py-3 px-2">
-                        <div className="flex gap-1 justify-center">
-                          <button
-                            onClick={() => editOrder(o)}
-                            className="text-yellow-500 hover:text-yellow-600 p-1 rounded hover:bg-yellow-100 transition-colors"
-                            title="Edit Order"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => printOrder(o)}
-                            className="text-blue-500 hover:text-blue-600 p-1 rounded hover:bg-blue-100 transition-colors"
-                            title="Print Order"
-                          >
-                            <Printer size={16} />
-                          </button>
-                          <button
-                            onClick={() => deleteOrder(o.id)}
-                            className="text-red-500 hover:text-red-600 p-1 rounded hover:bg-red-100 transition-colors"
-                            title="Delete Order"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                      <td className={`py-3 px-2 text-right font-bold text-lg ${isDark ? 'text-green-400' : 'text-green-600'}`}>₹{parseFloat(o.total).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Cards */}
-            <div className="md:hidden space-y-3">
-              {offlineOrders.filter(o => 
-                o.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                o.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                o.product.toLowerCase().includes(searchTerm.toLowerCase())
-              ).length === 0 && (
-                <div className={`py-8 text-center ${textSecondary} italic`}>
-                  {searchTerm ? 'No orders found matching your search' : 'No orders have been added yet'}
-                </div>
-              )}
-              
-              {offlineOrders.filter(o => 
-                o.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                o.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                o.product.toLowerCase().includes(searchTerm.toLowerCase())
-              ).map((o) => (
-                <div key={o.id} className={`p-3 rounded-lg ${cardBg} ${border} shadow-sm`}>
-                  {/* Header */}
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1">
-                      <h3 className={`font-bold text-sm ${text} mb-1`}>{o.id}</h3>
-                      <p className={`text-sm ${text} font-medium`}>{o.customer}</p>
-                      <p className={`text-xs ${textSecondary}`}>{o.email}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-bold text-lg ${isDark ? 'text-green-400' : 'text-green-600'}`}>₹{parseFloat(o.total).toLocaleString()}</p>
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs mt-1 ${o.payment === 'Cash' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
-                        {o.payment}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Details Grid */}
-                  <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                    <div>
-                      <span className={`${textSecondary} block`}>Products:</span>
-                      <span className={`${text} font-medium`} title={o.product}>{o.product.length > 20 ? o.product.substring(0, 20) + '...' : o.product}</span>
-                    </div>
-                    <div>
-                      <span className={`${textSecondary} block`}>Quantity:</span>
-                      <span className={`${text} font-medium`}>{o.qty}</span>
-                    </div>
-                    <div>
-                      <span className={`${textSecondary} block`}>Amount:</span>
-                      <span className={`${text} font-medium`}>₹{parseFloat(o.amount).toLocaleString()}</span>
-                    </div>
-                    <div>
-                      <span className={`${textSecondary} block`}>Discount:</span>
-                      <span className={`${text} font-medium`}>{o.discount || 0}%</span>
-                    </div>
-                  </div>
-                  
-                  {/* Date */}
-                  <div className={`text-xs ${textSecondary} mb-3 pb-2 border-b ${border}`}>
-                    <span className="block">Date & Time:</span>
-                    <span>{o.dateTime || 'N/A'}</span>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => editOrder(o)}
-                      className="flex-1 bg-yellow-600 hover:bg-yellow-700 px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <Edit size={14} /> Edit
-                    </button>
-                    <button
-                      onClick={() => printOrder(o)}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <Printer size={14} /> Print
-                    </button>
-                    <button
-                      onClick={() => deleteOrder(o.id)}
-                      className="flex-1 bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg text-xs flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <Trash2 size={14} /> Delete
-                    </button>
-                  </div>
-                </div>
+          <div className="sm:col-span-2 lg:col-span-1">
+            <label className={`block text-xs mb-1 ${textSecondary}`}>Payment Mode</label>
+            <select
+              name="payment"
+              value={formData.payment}
+              onChange={handleChange}
+              className={`p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm ${cardBg} ${border} ${text}`}
+            >
+              <option value="">Select Payment Mode</option>
+              {paymentModes.map((mode, index) => (
+                <option key={index} value={mode}>{mode}</option>
               ))}
-            </div>
+            </select>
           </div>
+        </div>
+
+        {/* Add Product Section */}
+        <div className="mb-4 mt-4 max-w-sm">
+          <h3 className={`text-sm font-semibold mb-2 ${text}`}>Add New Product</h3>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={newProduct}
+              onChange={(e) => setNewProduct(e.target.value)}
+              placeholder="Enter product name"
+              className={`flex-1 px-3 py-2 text-sm rounded-lg border ${border} ${cardBg} ${text}`}
+            />
+            <button
+              onClick={addProduct}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 whitespace-nowrap"
+            >
+              Add Product
+            </button>
+          </div>
+        </div>
+
+        {/* Product Selection Section */}
+        <div className="mt-4">
+          <label className={`block text-sm mb-3 ${textSecondary}`}>Select Products with Quantity & Amount</label>
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-80 overflow-y-auto p-4 rounded-lg ${cardBg} ${border}`}>
+            {productList.map((product, index) => {
+              const isSelected = formData.productDetails?.[product];
+              return (
+                <div key={index} className={`rounded-lg p-3 sm:p-4 ${cardBg} ${border} transition-all hover:shadow-md`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="flex items-center space-x-2 sm:space-x-3 cursor-pointer flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={!!isSelected}
+                        onChange={(e) => {
+                          const newDetails = {...formData.productDetails};
+                          if (e.target.checked) {
+                            newDetails[product] = {qty: 1, amount: 0};
+                          } else {
+                            delete newDetails[product];
+                          }
+                          const selectedProducts = Object.keys(newDetails).join(', ');
+                          setFormData({...formData, productDetails: newDetails, product: selectedProducts});
+                        }}
+                        className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2 flex-shrink-0"
+                      />
+                      <span className={`text-sm sm:text-base font-medium ${text} truncate`} title={product}>{product}</span>
+                    </label>
+                    <button
+                      onClick={() => deleteProduct(product)}
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded-lg transition-colors flex-shrink-0 ml-2"
+                      title="Delete product"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                  {isSelected && (
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-3">
+                      <div>
+                        <label className={`block text-xs mb-1 ${textSecondary}`}>Quantity</label>
+                        <input
+                          type="number"
+                          placeholder="Qty"
+                          value={isSelected?.qty || ''}
+                          onChange={(e) => {
+                            const newDetails = {...formData.productDetails};
+                            newDetails[product] = {...(newDetails[product] || {}), qty: e.target.value};
+                            
+                            let totalAmount = 0;
+                            Object.values(newDetails).forEach(detail => {
+                              const qty = parseFloat(detail.qty) || 0;
+                              const amount = parseFloat(detail.amount) || 0;
+                              totalAmount += qty * amount;
+                            });
+                            
+                            setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2)});
+                          }}
+                          className={`p-2 sm:p-2.5 rounded-lg border text-sm w-full ${cardBg} ${border} ${text} focus:ring-2 focus:ring-red-500`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-xs mb-1 ${textSecondary}`}>Amount</label>
+                        <input
+                          type="number"
+                          placeholder="Amount"
+                          value={isSelected?.amount || ''}
+                          onChange={(e) => {
+                            const newDetails = {...formData.productDetails};
+                            newDetails[product] = {...(newDetails[product] || {}), amount: e.target.value};
+                            
+                            let totalAmount = 0;
+                            Object.values(newDetails).forEach(detail => {
+                              const qty = parseFloat(detail.qty) || 0;
+                              const amount = parseFloat(detail.amount) || 0;
+                              totalAmount += qty * amount;
+                            });
+                            
+                            setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2)});
+                          }}
+                          className={`p-2 sm:p-2.5 rounded-lg border text-sm w-full ${cardBg} ${border} ${text} focus:ring-2 focus:ring-red-500`}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {formData.product && (
+            <div className="mt-3 p-3 bg-green-900/20 border border-green-700 rounded-lg">
+              <span className="text-green-400 text-sm sm:text-base break-words block">Selected: {formData.product}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Order Details */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className={`block text-xs mb-1 ${textSecondary}`}>Total Amount (Auto)</label>
+            <input
+              type="number"
+              name="amount"
+              value={formData.amount}
+              readOnly
+              placeholder="Total Amount (Auto)"
+              className={`p-3 rounded-lg border w-full opacity-60 font-bold text-blue-400 text-sm ${cardBg} ${border}`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs mb-1 ${textSecondary}`}>Discount %</label>
+            <input
+              type="number"
+              name="discount"
+              value={formData.discount}
+              onChange={handleChange}
+              placeholder="Discount %"
+              className={`p-3 rounded-lg border w-full text-sm ${cardBg} ${border} ${text}`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs mb-1 ${textSecondary}`}>GST %</label>
+            <input
+              type="number"
+              name="gst"
+              value={formData.gst}
+              onChange={handleChange}
+              placeholder="GST %"
+              className={`p-3 rounded-lg border w-full text-sm ${cardBg} ${border} ${text}`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs mb-1 ${textSecondary}`}>Final Total (Auto)</label>
+            <input
+              type="number"
+              name="total"
+              value={formData.total}
+              readOnly
+              placeholder="Final Total (Auto)"
+              className={`p-3 rounded-lg border opacity-60 w-full font-bold text-green-400 text-sm ${cardBg} ${border}`}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 mt-6">
+          <button
+            onClick={addOfflineOrder}
+            className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg flex gap-2 items-center justify-center text-sm font-medium transition-colors"
+          >
+            <Plus size={18} /> {editingOrder ? 'Update Order' : 'Add Order'}
+          </button>
+          
+          <button
+            onClick={() => offlineOrders.length > 0 && printOrder(offlineOrders[offlineOrders.length - 1])}
+            className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg flex gap-2 items-center justify-center text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={offlineOrders.length === 0}
+          >
+            <Printer size={18} /> Print Last Order
+          </button>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className={`p-4 sm:p-6 rounded-xl ${cardBg} ${border}`}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+          <h2 className={`text-base sm:text-lg font-semibold ${text}`}>Offline Orders</h2>
+          <div className="flex flex-col sm:flex-row gap-3  sm:w-auto">
+            <div className="relative flex-1 sm:flex-initial">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              <input
+                type="text"
+                placeholder="Search orders..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`pl-10 pr-4 py-2.5 rounded-lg text-sm w-full sm:w-64 lg:w-80 ${cardBg} ${border} ${text} focus:ring-2 focus:ring-red-500`}
+              />
+            </div>
+            <button
+              onClick={exportToExcel}
+              className="bg-green-600 hover:bg-green-700 px-4 py-2.5 rounded-lg flex gap-2 items-center justify-center text-sm whitespace-nowrap transition-colors"
+            >
+              <Download size={18} /> Export Excel
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full text-xs max-w-4xl table-fixed">
+            <thead className={`border-b ${border} ${textSecondary}`}>
+              <tr>
+                <th className="text-left py-1 px-0.5 font-semibold w-12">ID</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-20">Customer</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-24">Email</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-32">Product</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-8">Qty</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-16">Amount</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-12">Disc</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-8">GST</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-16">Payment</th>
+                <th className="text-center py-1 px-0.5 font-semibold w-20">Actions</th>
+                <th className="text-right py-1 px-0.5 font-semibold w-16">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {offlineOrders.filter(o => 
+                (o.customer?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (o.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (o.id?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (o.product?.toLowerCase().includes(searchTerm.toLowerCase()))
+              ).length === 0 && (
+                <tr>
+                  <td colSpan="11" className={`py-8 text-center ${textSecondary}`}>
+                    {searchTerm ? 'No orders found matching your search' : 'No offline orders added'}
+                  </td>
+                </tr>
+              )}
+
+              {offlineOrders.filter(o => 
+                (o.customer?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (o.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (o.id?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (o.product?.toLowerCase().includes(searchTerm.toLowerCase()))
+              ).map((o) => (
+                <tr key={o.id} className={`border-b ${border} hover:bg-opacity-50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}>
+                  <td className={`py-1 px-0.5 ${text} font-medium truncate`}>{o.id}</td>
+                  <td className={`py-1 px-0.5 ${text} font-medium truncate`}>{o.customer}</td>
+                  <td className={`py-1 px-0.5 ${textSecondary} truncate`} title={o.email}>{o.email}</td>
+                  <td className={`py-1 px-0.5 ${textSecondary} truncate`} title={o.product}>{o.product}</td>
+                  <td className={`py-1 px-0.5 ${text} text-center`}>{o.qty}</td>
+                  <td className={`py-1 px-0.5 ${text} truncate`}>₹{o.amount}</td>
+                  <td className={`py-1 px-0.5 ${textSecondary} text-center`}>{o.discount || 0}%</td>
+                  <td className={`py-1 px-0.5 ${textSecondary} text-center`}>{o.gst || 0}%</td>
+                  <td className={`py-1 px-0.5 ${textSecondary} truncate`}>{o.payment}</td>
+                  <td className="py-1 px-0.5">
+                    <div className="flex gap-0.5 justify-center">
+                      <button
+                        onClick={() => editOrder(o)}
+                        className="text-yellow-500 hover:text-yellow-600 p-0.5 rounded transition-colors"
+                        title="Edit"
+                      >
+                        <Edit size={10} />
+                      </button>
+                      <button
+                        onClick={() => printOrder(o)}
+                        className="text-blue-500 hover:text-blue-600 p-0.5 rounded transition-colors"
+                        title="Print"
+                      >
+                        <Printer size={10} />
+                      </button>
+                      <button
+                        onClick={() => deleteOrder(o.id)}
+                        className="text-red-500 hover:text-red-600 p-0.5 rounded transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    </div>
+                  </td>
+                  <td className={`py-1 px-0.5 font-bold ${text} text-right truncate`}>₹{o.total}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className={`border-t-2 ${border} bg-green-900/20`}>
+                <td colSpan="10" className={`py-2 px-1 font-bold text-right ${text}`}>Grand Total:</td>
+                <td className={`py-2 px-1 font-bold text-right text-green-400 text-sm`}>
+                  ₹{offlineOrders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0).toFixed(2)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="lg:hidden space-y-4">
+          {offlineOrders.filter(o => 
+            (o.customer?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (o.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (o.id?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (o.product?.toLowerCase().includes(searchTerm.toLowerCase()))
+          ).length === 0 && (
+            <div className={`py-4 text-center ${textSecondary}`}>
+              {searchTerm ? 'No orders found matching your search' : 'No offline orders added'}
+            </div>
+          )}
+          
+          {offlineOrders.filter(o => 
+            (o.customer?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (o.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (o.id?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (o.product?.toLowerCase().includes(searchTerm.toLowerCase()))
+          ).map((o) => (
+            <div key={o.id} className={`p-3 sm:p-4 rounded-xl ${cardBg} ${border} shadow-sm`}>
+              <div className="flex justify-between items-start mb-3 sm:mb-4">
+                <div className="flex-1 min-w-0 pr-3">
+                  <h3 className={`font-bold text-base sm:text-lg ${text} truncate`}>{o.id}</h3>
+                  <p className={`text-sm sm:text-base ${textSecondary} truncate`}>{o.customer}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className={`font-bold text-lg sm:text-xl ${isDark ? 'text-green-400' : 'text-green-600'}`}>₹ {o.total}</p>
+                  <p className={`text-xs sm:text-sm ${textSecondary}`}>{o.payment}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-2 text-sm sm:text-base">
+                <div className={`${textSecondary} flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2`}>
+                  <span className="font-medium">Email:</span> 
+                  <span className={`${text} break-all text-xs sm:text-sm`}>{o.email}</span>
+                </div>
+                <div className={`${textSecondary} flex flex-col gap-1`}>
+                  <span className="font-medium">Product:</span> 
+                  <span className={`${text} break-words text-xs sm:text-sm`}>{o.product}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                  <div className={textSecondary}>
+                    <span className="font-medium">Qty:</span> <span className={text}>{o.qty}</span>
+                  </div>
+                  <div className={textSecondary}>
+                    <span className="font-medium">Amount:</span> <span className={text}>₹{o.amount}</span>
+                  </div>
+                  <div className={textSecondary}>
+                    <span className="font-medium">Discount:</span> <span className={text}>{o.discount || 0}%</span>
+                  </div>
+                  <div className={textSecondary}>
+                    <span className="font-medium">GST:</span> <span className={text}>{o.gst || 0}%</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={`flex gap-2 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t ${border}`}>
+                <button
+                  onClick={() => editOrder(o)}
+                  className="flex-1 bg-yellow-600 hover:bg-yellow-700 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 transition-colors"
+                >
+                  <Edit size={14} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Edit</span>
+                </button>
+                <button
+                  onClick={() => printOrder(o)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 transition-colors"
+                >
+                  <Printer size={14} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Print</span>
+                </button>
+                <button
+                  onClick={() => deleteOrder(o.id)}
+                  className="flex-1 bg-red-600 hover:bg-red-700 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2 transition-colors"
+                >
+                  <Trash2 size={14} className="sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Delete</span>
+                </button>
+              </div>
+            </div>
+          ))}
+          
+          {/* Mobile Total */}
+          {offlineOrders.length > 0 && (
+            <div className={`mt-4 p-4 rounded-xl bg-green-900/20 border border-green-700`}>
+              <div className="flex justify-between items-center">
+                <span className={`font-bold text-lg ${text}`}>Grand Total:</span>
+                <span className="font-bold text-xl text-green-400">
+                  ₹{offlineOrders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
