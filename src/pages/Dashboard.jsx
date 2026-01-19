@@ -30,19 +30,13 @@ const SalesTrend = ({ range }) => {
   return (
     <div className="w-full h-[220px]">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={currentData}>
-          <defs>
-            <linearGradient id="colorV" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-            </linearGradient>
-          </defs>
+        <BarChart data={currentData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" vertical={false} />
           <XAxis dataKey="name" stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
           <YAxis stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
           <Tooltip contentStyle={{ backgroundColor: '#1a1c1e', border: 'none', borderRadius: '8px' }} />
-          <Area type="monotone" dataKey="profit" stroke="#ef4444" strokeWidth={3} fill="url(#colorV)" />
-        </AreaChart>
+          <Bar dataKey="profit" fill="#ef4444" radius={[4, 4, 0, 0]} />
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );
@@ -179,7 +173,7 @@ const RecentOrders = () => {
 };
 
 // Main Dashboard Component
-// Main Dashboard Component
+
 const Dashboard = () => {
   return (
     <div className="space-y-6">
