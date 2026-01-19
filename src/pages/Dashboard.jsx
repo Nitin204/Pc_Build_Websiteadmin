@@ -47,30 +47,45 @@ const StatsGrid = () => {
   const { cardBg, border, text, textSecondary } = useTheme();
   const [stats, setStats] = useState([
     { label: 'Total Orders', value: '0', active: true },
-    { label: 'Revenue', value: '₹ 0' },
-    { label: 'PC Builds', value: '0' },
-    { label: 'Components', value: '0' }
+    { label: 'Online Revenue', value: '₹ 0' },
+    { label: 'Offline Revenue', value: '₹ 0' },
+    { label: 'Users', value: '0' }
   ]);
 
   useEffect(() => {
-    // Fetch real stats from backend
-    axios.get(`${API_URL}/dashboard/stats`)
-      .then(res => {
+    Promise.all([
+      axios.get(`${API_URL}/order/count`),
+      axios.get(`${API_URL}/auth/users/getusercount`),
+      axios.get(`${API_URL}/order/income`)
+    ])
+      .then(([orderCountRes, userCountRes, incomeRes]) => {
         setStats([
-          { label: 'Total Orders', value: res.data.totalOrders || '453', active: true },
-          { label: 'Online Revenue', value: `₹ ${res.data.revenue || '2,345,670'}` },
-          { label: 'Offline Revenue', value: `₹ ${res.data.revenue || '2,345,670'}` },
-          { label: 'Users', value: res.data.users || '89' },
+          {
+            label: 'Total Orders',
+            value: orderCountRes.data,
+            active: true
+          },
+          {
+            label: 'Online Revenue',
+            value: `₹ ${incomeRes.data}`
+          },
+          {
+            label: 'Offline Revenue',
+            value: '₹ 0'
+          },
+          {
+            label: 'Users',
+            value: userCountRes.data
+          }
         ]);
       })
       .catch(() => {
-        // Fallback data
-           // Fallback data
+        // Fallback data (UNCHANGED)
         setStats([
           { label: 'Total Orders', value: '453', active: true },
           { label: 'Online Revenue', value: '₹ 2,345,670' },
-          { label: 'Users', value: '89' },
-          { label: 'Components', value: '1,234' }
+          { label: 'Offline Revenue', value: '₹ 2,345,670' },
+          { label: 'Users', value: '89' }
         ]);
       });
   }, []);
@@ -78,8 +93,15 @@ const StatsGrid = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {stats.map((stat, i) => (
-        <div key={i} className={`p-6 rounded-2xl text-center transition-all hover:scale-105 ${cardBg} ${border} ${stat.active ? 'border-b-4 border-b-red-600 shadow-lg shadow-red-900/10' : ''}`}>
-          <p className={`text-[10px] uppercase tracking-widest mb-2 font-bold ${textSecondary}`}>{stat.label}</p>
+        <div
+          key={i}
+          className={`p-6 rounded-2xl text-center transition-all hover:scale-105 ${cardBg} ${border} ${
+            stat.active ? 'border-b-4 border-b-red-600 shadow-lg shadow-red-900/10' : ''
+          }`}
+        >
+          <p className={`text-[10px] uppercase tracking-widest mb-2 font-bold ${textSecondary}`}>
+            {stat.label}
+          </p>
           <h3 className={`text-2xl font-black ${text}`}>{stat.value}</h3>
         </div>
       ))}
@@ -94,23 +116,18 @@ const ChartsSection = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-8">
-      {/* Sales Trend Card */}
       <div className={`p-6 rounded-2xl shadow-inner ${cardBg} ${border}`}>
         <div className="flex justify-between items-center mb-6">
           <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>
             PC Component Sales Profit
           </h4>
-          
-          {/* Time Filter Buttons */}
           <div className={`flex p-1 rounded-lg ${isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-100 border-gray-200'} ${border}`}>
-            {['7D', '30D', '12M'].map((range) => (
+            {['7D', '30D', '12M'].map(range => (
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
                 className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${
-                  timeRange === range 
-                  ? 'bg-red-600 text-white shadow-lg' 
-                  : 'text-gray-500 hover:text-gray-300'
+                  timeRange === range ? 'bg-red-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
                 {range}
@@ -118,7 +135,6 @@ const ChartsSection = () => {
             ))}
           </div>
         </div>
-        
         <SalesTrend range={timeRange} />
       </div>
     </div>
@@ -131,37 +147,40 @@ const RecentOrders = () => {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    axios.get(`${API_URL}/orders`)
-      .then(res => {
-        setOrders(res.data.slice(0, 5)); // Show only 5 recent orders
-      })
-      .catch(() => {
-        // Fallback data
-        setOrders([
-          { id: 'PC-001', customer: 'Rahul Sharma', total: '₹ 1,25,000', status: 'Completed', product: 'Gaming PC Build' },
-          { id: 'PC-002', customer: 'Priya Singh', total: '₹ 85,000', status: 'Processing', product: 'Office PC Build' }
-        ]);
-      });
+    axios.get(`${API_URL}/order`)
+      .then(res => setOrders(res.data.slice(0, 5)))
+      .catch(() => setOrders([]));
   }, []);
 
   return (
     <div className={`xl:col-span-2 p-6 rounded-2xl ${cardBg} ${border}`}>
       <h4 className={`text-sm font-bold mb-6 flex justify-between uppercase tracking-wider ${textSecondary}`}>
-        Recent PC Orders <span className="text-blue-500 text-xs cursor-pointer hover:underline font-bold">View All</span>
+        Recent PC Orders
       </h4>
       <div className="space-y-3">
         {orders.map((order, i) => (
-          <div key={order.id || i} className={`flex justify-between items-center p-4 rounded-xl hover:border-gray-600 transition-colors ${isDark ? 'bg-[#25282c] border-gray-800' : 'bg-gray-50 border-gray-200'} ${border}`}>
+          <div
+            key={order.id || i}
+            className={`flex justify-between items-center p-4 rounded-xl hover:border-gray-600 transition-colors ${
+              isDark ? 'bg-[#25282c] border-gray-800' : 'bg-gray-50 border-gray-200'
+            } ${border}`}
+          >
             <div className="flex items-center gap-4">
-              <div className={`p-2 rounded-lg text-red-500 font-bold text-xs ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>PC</div>
+              <div className={`p-2 rounded-lg text-red-500 font-bold text-xs ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                PC
+              </div>
               <div>
-                <p className={`text-sm font-bold ${text}`}>{order.customer || order.userName}</p>
-                <p className={`text-[10px] font-semibold uppercase ${textSecondary}`}>{order.product || order.id}</p>
+                <p className={`text-sm font-bold ${text}`}>{order.userName}</p>
+                <p className={`text-[10px] font-semibold uppercase ${textSecondary}`}>{order.id}</p>
               </div>
             </div>
             <div className="text-right">
-              <p className={`text-sm font-bold ${text}`}>{order.total || `₹ ${order.totalAmount}`}</p>
-              <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-tighter ${order.status === 'Completed' || order.status === 'Shipped' ? 'bg-green-900/30 text-green-500' : 'bg-yellow-900/30 text-yellow-500'}`}>
+              <p className={`text-sm font-bold ${text}`}>₹ {order.totalAmount}</p>
+              <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-bold tracking-tighter ${
+                order.status === 'Completed' || order.status === 'Shipped'
+                  ? 'bg-green-900/30 text-green-500'
+                  : 'bg-yellow-900/30 text-yellow-500'
+              }`}>
                 {order.status}
               </span>
             </div>
@@ -173,7 +192,6 @@ const RecentOrders = () => {
 };
 
 // Main Dashboard Component
-
 const Dashboard = () => {
   return (
     <div className="space-y-6">
