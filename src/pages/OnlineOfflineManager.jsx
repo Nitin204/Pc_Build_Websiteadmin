@@ -25,8 +25,7 @@ const OfflineOnlineData = () => {
     discount: "",
     gst: "",
     total: "",
-    payment: "",
-    dateTime: new Date().toISOString().slice(0, 16)
+    payment: ""
   });
   const [editingOrder, setEditingOrder] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -156,8 +155,7 @@ const OfflineOnlineData = () => {
       discount: "",
       gst: "",
       total: "",
-      payment: "",
-      dateTime: new Date().toISOString().slice(0, 16)
+      payment: ""
     });
     setEditingOrder(null);
   };
@@ -170,9 +168,11 @@ const OfflineOnlineData = () => {
     }
 
     let totalQty = 0;
-    Object.values(formData.productDetails).forEach(detail => {
-      totalQty += parseFloat(detail.qty) || 0;
-    });
+    if (formData.productDetails) {
+      Object.values(formData.productDetails).forEach(detail => {
+        totalQty += parseFloat(detail.qty) || 0;
+      });
+    }
 
     const orderData = {
       ...formData,
@@ -601,6 +601,8 @@ const OfflineOnlineData = () => {
           </div>
         </div>
 
+
+
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <button
             onClick={addOfflineOrder}
@@ -657,6 +659,8 @@ const OfflineOnlineData = () => {
                 <th className="text-left py-1 px-0.5 font-semibold w-12">Disc</th>
                 <th className="text-left py-1 px-0.5 font-semibold w-8">GST</th>
                 <th className="text-left py-1 px-0.5 font-semibold w-16">Payment</th>
+                <th className="text-left py-1 px-0.5 font-semibold w-24">Date & Time</th>
+
                 <th className="text-center py-1 px-0.5 font-semibold w-20">Actions</th>
                 <th className="text-right py-1 px-0.5 font-semibold w-16">Total</th>
               </tr>
@@ -669,7 +673,7 @@ const OfflineOnlineData = () => {
                 (o.product?.toLowerCase().includes(searchTerm.toLowerCase()))
               ).length === 0 && (
                 <tr>
-                  <td colSpan="11" className={`py-8 text-center ${textSecondary}`}>
+                  <td colSpan="12" className={`py-8 text-center ${textSecondary}`}>
                     {searchTerm ? 'No orders found matching your search' : 'No offline orders added'}
                   </td>
                 </tr>
@@ -691,6 +695,8 @@ const OfflineOnlineData = () => {
                   <td className={`py-1 px-0.5 ${textSecondary} text-center`}>{o.discount || 0}%</td>
                   <td className={`py-1 px-0.5 ${textSecondary} text-center`}>{o.gst || 0}%</td>
                   <td className={`py-1 px-0.5 ${textSecondary} truncate`}>{o.payment}</td>
+                  <td className={`py-1 px-0.5 ${textSecondary} truncate text-xs`} title={o.dateTime}>{o.dateTime}</td>
+
                   <td className="py-1 px-0.5">
                     <div className="flex gap-0.5 justify-center">
                       <button
@@ -722,7 +728,7 @@ const OfflineOnlineData = () => {
             </tbody>
             <tfoot>
               <tr className={`border-t-2 ${border} bg-green-900/20`}>
-                <td colSpan="10" className={`py-2 px-1 font-bold text-right ${text}`}>Grand Total:</td>
+                <td colSpan="11" className={`py-2 px-1 font-bold text-right ${text}`}>Grand Total:</td>
                 <td className={`py-2 px-1 font-bold text-right text-green-400 text-sm`}>
                   ₹{offlineOrders.reduce((sum, order) => sum + parseFloat(order.total || 0), 0).toFixed(2)}
                 </td>
@@ -785,6 +791,12 @@ const OfflineOnlineData = () => {
                     <span className="font-medium">GST:</span> <span className={text}>{o.gst || 0}%</span>
                   </div>
                 </div>
+                {o.dateTime && (
+                  <div className={`${textSecondary} flex flex-col gap-1 mt-2`}>
+                    <span className="font-medium">Date & Time:</span> 
+                    <span className={`${text} text-xs sm:text-sm`}>{o.dateTime}</span>
+                  </div>
+                )}
               </div>
               
               <div className={`flex gap-2 sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t ${border}`}>

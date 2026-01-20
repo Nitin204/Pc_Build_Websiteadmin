@@ -5,37 +5,45 @@ import axios from 'axios';
 
 const API_URL = "http://localhost:8181/api";
 
-// Chart Data for PC Components Monthly Profit
-const dataSets = {
-  '7D': [
-    { name: 'Mon', profit: 12000 }, { name: 'Tue', profit: 8500 }, { name: 'Wed', profit: 15000 }, 
-    { name: 'Thu', profit: 18000 }, { name: 'Fri', profit: 11000 }, { name: 'Sat', profit: 22000 }, { name: 'Sun', profit: 25000 }
-  ],
-  '30D': [
-    { name: 'Day 1', profit: 8000 }, { name: 'Day 5', profit: 12000 }, { name: 'Day 10', profit: 15000 },
-    { name: 'Day 15', profit: 18000 }, { name: 'Day 20', profit: 22000 }, { name: 'Day 25', profit: 25000 }, { name: 'Day 30', profit: 28000 }
-  ],
-  '12M': [
-    { name: 'Jan', profit: 180000 }, { name: 'Feb', profit: 220000 }, { name: 'Mar', profit: 195000 }, 
-    { name: 'Apr', profit: 285000 }, { name: 'May', profit: 320000 }, { name: 'Jun', profit: 380000 },
-    { name: 'Jul', profit: 420000 }, { name: 'Aug', profit: 395000 }, { name: 'Sep', profit: 450000 },
-    { name: 'Oct', profit: 485000 }, { name: 'Nov', profit: 520000 }, { name: 'Dec', profit: 580000 }
-  ]
-};
+
 
 // Sales Trend Chart Component
 const SalesTrend = ({ range }) => {
-  const currentData = dataSets[range] || dataSets['30D'];
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+
+    axios
+      .get(`${API_URL}/dashboard/sales`, {
+        params: { range }
+      })
+      .then(res => {
+        setData(res.data);
+      })
+      .catch(err => {
+        console.error("Sales API error", err);
+        setData([]);
+      })
+      .finally(() => setLoading(false));
+
+  }, [range]);
+
+  if (loading) {
+    return <div className="text-xs text-gray-400">Loading chart...</div>;
+  }
 
   return (
-    <div className="w-full h-[220px] min-h-[220px]" style={{ minWidth: '300px', minHeight: '220px' }}>
-      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={220}>
-        <BarChart data={currentData}>
+    <div className="w-full h-[220px] min-h-[220px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" vertical={false} />
-          <XAxis dataKey="name" stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
-          <YAxis stroke="#666" fontSize={10} tickLine={false} axisLine={false} />
-          <Tooltip contentStyle={{ backgroundColor: '#1a1c1e', border: 'none', borderRadius: '8px' }} />
-          <Bar dataKey="profit" fill="#ef4444" radius={[4, 4, 0, 0]} />
+          <XAxis dataKey="name" stroke="#666" fontSize={10} />
+          <YAxis stroke="#666" fontSize={10} />
+          <Tooltip />
+          <Bar dataKey="online" fill="#ffffff" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="offline" fill="#ef4444" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -56,9 +64,10 @@ const StatsGrid = () => {
     Promise.all([
       axios.get(`${API_URL}/order/count`),
       axios.get(`${API_URL}/auth/users/getusercount`),
-      axios.get(`${API_URL}/order/income`)
+      axios.get(`${API_URL}/order/income`),
+      axios.get(`${API_URL}/offline-orders/revenue`)
     ])
-      .then(([orderCountRes, userCountRes, incomeRes]) => {
+      .then(([orderCountRes, userCountRes, incomeRes, offlineRevenueRes]) => {
         setStats([
           {
             label: 'Total Orders',
@@ -71,7 +80,7 @@ const StatsGrid = () => {
           },
           {
             label: 'Offline Revenue',
-            value: '₹ 0'
+            value: `₹ ${offlineRevenueRes.data}`
           },
           {
             label: 'Users',
@@ -121,6 +130,16 @@ const ChartsSection = () => {
           <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>
             PC Component Sales Profit
           </h4>
+          <div className="flex gap-4 text-xs">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-white rounded"></div>
+              <span className={textSecondary}>Online</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <span className={textSecondary}>Offline</span>
+            </div>
+          </div>
           <div className={`flex p-1 rounded-lg ${isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-100 border-gray-200'} ${border}`}>
             {['7D', '30D', '12M'].map(range => (
               <button
@@ -148,7 +167,7 @@ const RecentOrders = () => {
 
   useEffect(() => {
     axios.get(`${API_URL}/order`)
-      .then(res => setOrders(res.data.slice(0, 5)))
+      .then(res => setOrders(res.data.slice(-3).reverse()))
       .catch(() => setOrders([]));
   }, []);
 

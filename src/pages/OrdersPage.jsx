@@ -13,7 +13,8 @@ const OrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [orders, setOrders] = useState([]);
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const ordersPerPage = 10;
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -21,6 +22,12 @@ const OrdersPage = () => {
     const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  // Calculate pagination
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 const changeStatus = async (orderId, newStatus) => {
   const id = orderId.replace("#ORD-", "");
 
@@ -80,11 +87,14 @@ const changeStatus = async (orderId, newStatus) => {
           product: order.items?.[0]?.name || "Multiple Products",
           total: `₹ ${order.totalAmount?.toLocaleString()}`,
           status: order.status || "Processing",
-          address: addressStr
+          address: addressStr,
+          createdAt: order.createdAt || order.orderDate || order.date
         };
       });
 
-      setOrders(formattedOrders);
+      // Sort by creation date (most recent first)
+      const sortedOrders = formattedOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setOrders(sortedOrders);
     } catch (err) {
       console.error("Failed to fetch orders", err);
     }
@@ -152,7 +162,7 @@ const changeStatus = async (orderId, newStatus) => {
       <div className={`rounded-2xl overflow-hidden ${cardBg} ${border}`}>
         {/* Mobile Card View */}
         <div className="block md:hidden space-y-3 p-4">
-          {filteredOrders.map((order) => (
+          {currentOrders.map((order) => (
             <div key={order.id} className={`p-4 rounded-xl space-y-2 ${cardBg} ${border}`}>
               <div className="flex justify-between items-start">
                 <span className="text-red-500 font-bold text-sm">{order.id}</span>
@@ -202,7 +212,7 @@ const changeStatus = async (orderId, newStatus) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {filteredOrders.map((order) => (
+              {currentOrders.map((order) => (
                 <tr key={order.id} className="hover:bg-opacity-50 transition-colors">
                   <td className="px-2 py-3 text-xs font-bold text-red-500">{order.id}</td>
                   <td className={`px-2 py-3 text-xs ${textSecondary}`}>{order.date}</td>
@@ -246,11 +256,23 @@ const changeStatus = async (orderId, newStatus) => {
         
         {/* Pagination */}
         <div className={`p-3 sm:p-4 border-t flex flex-col sm:flex-row justify-between items-center gap-2 text-xs ${border} ${textSecondary}`}>
-          <span>Showing 5 of 120 orders</span>
+          <span>Showing {Math.min(filteredOrders.length, 10)} of {filteredOrders.length} orders</span>
           <div className="flex gap-2">
-            <button className={`px-2 sm:px-3 py-1 rounded hover:bg-opacity-80 text-xs ${border} ${textSecondary}`}>Previous</button>
-            <button className="px-2 sm:px-3 py-1 bg-red-600 text-white rounded font-bold text-xs">1</button>
-            <button className={`px-2 sm:px-3 py-1 rounded hover:bg-opacity-80 text-xs ${border} ${textSecondary}`}>Next</button>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-2 sm:px-3 py-1 rounded hover:bg-opacity-80 text-xs ${border} ${textSecondary} ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              Previous
+            </button>
+            <button className="px-2 sm:px-3 py-1 bg-red-600 text-white rounded font-bold text-xs">{currentPage}</button>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-2 sm:px-3 py-1 rounded hover:bg-opacity-80 text-xs ${border} ${textSecondary} ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
