@@ -6,7 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 import Logo from '../assets/logo.png';
 import axios from "axios";
 
-const API_URL = "http://localhost:8181/api";
+const API_URL = "https://pc-build-websiteabackend-2.onrender.com/api";
 
 const OfflineOnlineData = () => {
   const { cardBg, border, text, textSecondary, isDark } = useTheme();

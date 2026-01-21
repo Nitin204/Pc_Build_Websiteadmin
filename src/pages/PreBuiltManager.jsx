@@ -540,7 +540,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:8181/api/prebuilts';
+const API_URL = 'https://pc-build-websiteabackend-2.onrender.com/api/prebuilts';
 
 const PreBuiltManager = () => {
   const { cardBg, border, text, textSecondary, isDark } = useTheme();

@@ -69,7 +69,7 @@ const changeStatus = async (orderId, newStatus) => {
   useEffect(() => {
   const fetchOrders = async () => {
     try {
-      const res = await axios.get("http://localhost:8181/api/order");
+      const res = await axios.get("https://pc-build-websiteabackend-2.onrender.com/api/order");
 
       const formattedOrders = res.data.map(order => {
         const addr = order.shippingAddress || order.address;

@@ -11,7 +11,7 @@ const ReportsPage = () => {
 
   /* ================= FETCH LEADS ================= */
   useEffect(() => {
-    fetch('http://localhost:8181/api/leads')
+    fetch('https://pc-build-websiteabackend-2.onrender.com/api/leads')
       .then(res => res.json())
       .then(data => setLeads(Array.isArray(data) ? data : []))
       .catch(err => console.error('Leads error:', err));
@@ -19,7 +19,7 @@ const ReportsPage = () => {
 
   /* ================= FETCH CAREERS ================= */
  useEffect(() => {
-  fetch('http://localhost:8181/api/careers')
+  fetch('https://pc-build-websiteabackend-2.onrender.com/api/careers')
     .then(res => res.json())
     .then(data => {
       const sortedData = Array.isArray(data)
@@ -30,7 +30,7 @@ const ReportsPage = () => {
 }, []);
 
   const downloadResume = async (id, name) => {
-    const res = await fetch(`http://localhost:8181/api/careers/${id}/resume`);
+    const res = await fetch(`https://pc-build-websiteabackend-2.onrender.com/api/careers/${id}/resume`);
 
     if (!res.ok) {
       alert("Resume not available");
@@ -51,7 +51,7 @@ const ReportsPage = () => {
   const deleteLead = async (id) => {
     if (confirm('Are you sure you want to delete this lead?')) {
       try {
-        await fetch(`http://localhost:8181/api/leads/${id}`, { method: 'DELETE' });
+        await fetch(`https://pc-build-websiteabackend-2.onrender.com/api/leads/${id}`, { method: 'DELETE' });
         setLeads(leads.filter(lead => lead.id !== id));
       } catch (err) {
         console.error('Delete lead error:', err);
@@ -60,7 +60,7 @@ const ReportsPage = () => {
   };
 
  const deleteApplication = async (id) => {
-  const res = await fetch(`http://localhost:8181/api/careers/${id}`, {
+  const res = await fetch(`https://pc-build-websiteabackend-2.onrender.com/api/careers/${id}`, {
     method: "DELETE",
   });
 

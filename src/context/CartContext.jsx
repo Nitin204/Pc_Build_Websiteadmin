@@ -30,7 +30,7 @@ export const CartProvider = ({ children }) => {
   // Load user cart from backend after login
   const loadUserCart = async (userId) => {
     try {
-      const response = await fetch(`http://localhost:8181/api/users/${userId}/cart`);
+      const response = await fetch(`https://pc-build-websiteabackend-2.onrender.com/api/users/${userId}/cart`);
       if (response.ok) {
         const userCart = await response.json();
         setCartItems(userCart);

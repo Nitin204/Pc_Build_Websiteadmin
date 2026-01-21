@@ -3,7 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
-const API_URL = "http://localhost:8181/api";
+const API_URL = "https://pc-build-websiteabackend-2.onrender.com/api";
 
 
 
