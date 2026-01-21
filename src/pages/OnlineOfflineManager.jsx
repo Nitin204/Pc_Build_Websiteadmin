@@ -48,6 +48,7 @@ const OfflineOnlineData = () => {
     // Fetch offline orders
     axios.get(`${API_URL}/offline-orders`)
       .then(res => {
+        console.log('Backend data:', res.data); // Debug log
         setOfflineOrders(res.data);
       })
       .catch(err => {
@@ -510,7 +511,15 @@ const OfflineOnlineData = () => {
                               totalAmount += qty * amount;
                             });
                             
-                            setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2)});
+                            // Calculate final total with discount and GST
+                            const discountPercent = parseFloat(formData.discount) || 0;
+                            const gst = parseFloat(formData.gst) || 0;
+                            const discountAmount = (totalAmount * discountPercent) / 100;
+                            const discountedAmount = totalAmount - discountAmount;
+                            const gstAmount = (discountedAmount * gst) / 100;
+                            const finalTotal = discountedAmount + gstAmount;
+                            
+                            setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2), total: finalTotal.toFixed(2)});
                           }}
                           className={`p-2 sm:p-2.5 rounded-lg border text-sm w-full ${cardBg} ${border} ${text} focus:ring-2 focus:ring-red-500`}
                         />
@@ -532,7 +541,15 @@ const OfflineOnlineData = () => {
                               totalAmount += qty * amount;
                             });
                             
-                            setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2)});
+                            // Calculate final total with discount and GST
+                            const discountPercent = parseFloat(formData.discount) || 0;
+                            const gst = parseFloat(formData.gst) || 0;
+                            const discountAmount = (totalAmount * discountPercent) / 100;
+                            const discountedAmount = totalAmount - discountAmount;
+                            const gstAmount = (discountedAmount * gst) / 100;
+                            const finalTotal = discountedAmount + gstAmount;
+                            
+                            setFormData({...formData, productDetails: newDetails, amount: totalAmount.toFixed(2), total: finalTotal.toFixed(2)});
                           }}
                           className={`p-2 sm:p-2.5 rounded-lg border text-sm w-full ${cardBg} ${border} ${text} focus:ring-2 focus:ring-red-500`}
                         />
@@ -597,6 +614,17 @@ const OfflineOnlineData = () => {
               readOnly
               placeholder="Final Total (Auto)"
               className={`p-3 rounded-lg border opacity-60 w-full font-bold text-green-400 text-sm ${cardBg} ${border}`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs mb-1 ${textSecondary}`}>Date & Time (Auto)</label>
+            <input
+              type="text"
+              value={new Date().toLocaleString('en-IN')}
+              readOnly
+              placeholder="Current Date & Time"
+              className={`p-3 rounded-lg border opacity-60 w-full font-bold text-blue-400 text-sm ${cardBg} ${border}`}
             />
           </div>
         </div>
@@ -695,7 +723,7 @@ const OfflineOnlineData = () => {
                   <td className={`py-1 px-0.5 ${textSecondary} text-center`}>{o.discount || 0}%</td>
                   <td className={`py-1 px-0.5 ${textSecondary} text-center`}>{o.gst || 0}%</td>
                   <td className={`py-1 px-0.5 ${textSecondary} truncate`}>{o.payment}</td>
-                  <td className={`py-1 px-0.5 ${textSecondary} truncate text-xs`} title={o.dateTime}>{o.dateTime}</td>
+                  <td className={`py-1 px-0.5 ${textSecondary} truncate text-xs`} title={o.dateTime || ''}>{o.dateTime || ''}</td>
 
                   <td className="py-1 px-0.5">
                     <div className="flex gap-0.5 justify-center">

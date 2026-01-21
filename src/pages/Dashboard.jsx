@@ -20,7 +20,23 @@ const SalesTrend = ({ range }) => {
         params: { range }
       })
       .then(res => {
-        setData(res.data);
+        console.log('Chart data:', res.data, 'Range:', range);
+        let chartData = res.data;
+        
+        // Transform data for 12M to show month names
+        if (range === '12M') {
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          chartData = chartData.map(item => {
+            const monthIndex = parseInt(item.name) - 1;
+            return {
+              ...item,
+              name: months[monthIndex] || item.name
+            };
+          });
+          console.log('Transformed data:', chartData);
+        }
+        
+        setData(chartData);
       })
       .catch(err => {
         console.error("Sales API error", err);
@@ -35,14 +51,14 @@ const SalesTrend = ({ range }) => {
   }
 
   return (
-    <div className="w-full h-[220px] min-h-[220px]">
+    <div className="w-full h-[160px] sm:h-[200px] lg:h-[220px] min-h-[160px] sm:min-h-[200px] lg:min-h-[220px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" vertical={false} />
           <XAxis dataKey="name" stroke="#666" fontSize={10} />
           <YAxis stroke="#666" fontSize={10} />
           <Tooltip />
-          <Bar dataKey="online" fill="#ffffff" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="online" fill="#3b82f6" radius={[4, 4, 0, 0]} />
           <Bar dataKey="offline" fill="#ef4444" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
@@ -70,48 +86,51 @@ const StatsGrid = () => {
       .then(([orderCountRes, userCountRes, incomeRes, offlineRevenueRes]) => {
         setStats([
           {
-            label: 'Total Orders',
+            label: 'Total Orders Online',
             value: orderCountRes.data,
             active: true
           },
           {
             label: 'Online Revenue',
-            value: `₹ ${incomeRes.data}`
+            value: `₹ ${incomeRes.data}`,
+            active: true
           },
           {
             label: 'Offline Revenue',
-            value: `₹ ${offlineRevenueRes.data}`
+            value: `₹ ${offlineRevenueRes.data}`,
+            active: true
           },
           {
             label: 'Users',
-            value: userCountRes.data
+            value: userCountRes.data,
+            active: true
           }
         ]);
       })
       .catch(() => {
         // Fallback data (UNCHANGED)
         setStats([
-          { label: 'Total Orders', value: '453', active: true },
-          { label: 'Online Revenue', value: '₹ 2,345,670' },
-          { label: 'Offline Revenue', value: '₹ 2,345,670' },
-          { label: 'Users', value: '89' }
+          { label: 'Total Orders Online', value: '453', active: true },
+          { label: 'Online Revenue', value: '₹ 2,345,670', active: true },
+          { label: 'Offline Revenue', value: '₹ 2,345,670', active: true },
+          { label: 'Users', value: '89', active: true }
         ]);
       });
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
       {stats.map((stat, i) => (
         <div
           key={i}
-          className={`p-6 rounded-2xl text-center transition-all hover:scale-105 ${cardBg} ${border} ${
+          className={`p-3 sm:p-4 lg:p-6 rounded-2xl text-center transition-all hover:scale-105 ${cardBg} ${border} ${
             stat.active ? 'border-b-4 border-b-red-600 shadow-lg shadow-red-900/10' : ''
           }`}
         >
           <p className={`text-[10px] uppercase tracking-widest mb-2 font-bold ${textSecondary}`}>
             {stat.label}
           </p>
-          <h3 className={`text-2xl font-black ${text}`}>{stat.value}</h3>
+          <h3 className={`text-lg sm:text-xl lg:text-2xl font-black ${text}`}>{stat.value}</h3>
         </div>
       ))}
     </div>
@@ -125,14 +144,14 @@ const ChartsSection = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-8">
-      <div className={`p-6 rounded-2xl shadow-inner ${cardBg} ${border}`}>
-        <div className="flex justify-between items-center mb-6">
+      <div className={`p-3 sm:p-4 lg:p-6 rounded-2xl shadow-inner ${cardBg} ${border}`}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
           <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>
             PC Component Sales Profit
           </h4>
           <div className="flex gap-4 text-xs">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-white rounded"></div>
+              <div className="w-3 h-3 bg-blue-500 rounded"></div>
               <span className={textSecondary}>Online</span>
             </div>
             <div className="flex items-center gap-2">
@@ -172,15 +191,15 @@ const RecentOrders = () => {
   }, []);
 
   return (
-    <div className={`xl:col-span-2 p-6 rounded-2xl ${cardBg} ${border}`}>
+    <div className={`p-3 sm:p-4 lg:p-6 rounded-2xl border-b-4 border-b-red-600 shadow-lg shadow-red-900/10 ${cardBg} ${border}`}>
       <h4 className={`text-sm font-bold mb-6 flex justify-between uppercase tracking-wider ${textSecondary}`}>
         Recent PC Orders
       </h4>
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {orders.map((order, i) => (
           <div
             key={order.id || i}
-            className={`flex justify-between items-center p-4 rounded-xl hover:border-gray-600 transition-colors ${
+            className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 sm:p-4 rounded-xl hover:border-gray-600 transition-colors gap-3 sm:gap-0 ${
               isDark ? 'bg-[#25282c] border-gray-800' : 'bg-gray-50 border-gray-200'
             } ${border}`}
           >
