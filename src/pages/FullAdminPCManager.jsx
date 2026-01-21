@@ -453,7 +453,9 @@ const FullAdminPCManager = () => {
                                 <div className="flex-1">
                                     <h4 className={`font-bold text-sm ${text}`}>{build.name || "Unnamed Build"}</h4>
                                     <p className="text-green-500 font-bold text-xs">₹{build.discountPrice}</p>
-                                    <p className={`text-xs ${textSecondary}`}>Qty: {build.quantity || 'N/A'}</p>
+                                    <p className={`text-xs ${build.quantity === 0 ? 'text-red-500' : textSecondary}`}>
+                                        {build.quantity === 0 ? 'Stock Not Available' : `Qty: ${build.quantity || 'N/A'}`}
+                                    </p>
                                     <div className="flex gap-2 mt-3">
                                         <button onClick={() => handleEdit(build)} className={`flex-1 bg-green-600 hover:bg-gray-600 py-2 cursor-pointer rounded text-[10px] uppercase font-bold transition-all ${isDark ? 'bg-[#1a1a1a] text-white' : 'bg-gray-200 text-black'}`}>Edit</button>
                                         <button onClick={() => handleDelete(build.id)} className={`bg-red-600 p-2 cursor-pointer rounded transition-all ${isDark ? 'bg-[#1a1a1a] text-white' : 'bg-gray-200 text-black'}`}><Trash2 size={14}/></button>

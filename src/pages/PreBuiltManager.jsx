@@ -717,7 +717,7 @@ const PreBuiltManager = () => {
           {products.map((product) => (
             <div key={product.id} className={`flex flex-col sm:flex-row gap-4 sm:gap-6 p-4 sm:p-5 rounded-2xl sm:rounded-3xl hover:border-red-600/50 transition-all ${cardBg} ${border}`}>
               <div className={`w-full sm:w-24 md:w-32 h-24 sm:h-24 md:h-32 rounded-xl sm:rounded-2xl flex items-center justify-center relative overflow-hidden ${isDark ? 'bg-black border-gray-800' : 'bg-gray-100 border-gray-300'} ${border}`}>
-                {product.image ? <img src={product.image} alt="build" className="w-full h-full object-cover" /> : <Laptop className={isDark ? 'text-gray-700' : 'text-gray-400'} size={24} />}
+                {product.image ? <img src={product.image} alt="build" className="w-full h-full object-contain p-2" /> : <Laptop className={isDark ? 'text-gray-700' : 'text-gray-400'} size={24} />}
                 <div className={`absolute top-1 sm:top-2 left-1 sm:left-2 w-2 h-2 rounded-full ${categories.find(c => c.id === product.category)?.bg}`}></div>
               </div>
               <div className="flex-1 space-y-2">
@@ -733,6 +733,11 @@ const PreBuiltManager = () => {
                   <div className="flex items-center gap-3 sm:gap-4">
                     <span className="text-green-500 font-black text-sm sm:text-base">₹ {Number(product.price).toLocaleString()}</span>
                     <span className="text-gray-400 line-through text-[10px] sm:text-xs font-bold opacity-50">₹ {Number(product.originalPrice).toLocaleString()}</span>
+                  </div>
+                  <div className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border ${product.quantity === 0 ? 'bg-red-600/10 border-red-600/20' : 'bg-blue-600/10 border-blue-600/20'}`}>
+                    <span className={`font-black text-[9px] sm:text-[10px] uppercase ${product.quantity === 0 ? 'text-red-500' : 'text-blue-400'}`}>
+                      {product.quantity === 0 ? 'Stock Not Available' : `QTY: ${product.quantity || 0}`}
+                    </span>
                   </div>
                   <div className="bg-red-600/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-red-600/20">
                     <span className="text-red-500 font-black text-[9px] sm:text-[10px] uppercase">SAVE: ₹ {(product.originalPrice - product.price).toLocaleString()}</span>

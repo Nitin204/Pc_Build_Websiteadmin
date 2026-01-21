@@ -585,7 +585,9 @@ const AccessoriesManager = () => {
               <p className={`text-xs line-clamp-2 ${textSecondary}`}>{item.specs}</p>
               <div className="flex flex-col md:flex-row md:items-center gap-2 pt-2">
                 <p className={`text-xl font-black ${text}`}>₹ {item.price}/-</p>
-                <span className={`text-xs ${textSecondary}`}>Qty: {item.quantity || 'N/A'}</span>
+                <span className={`text-xs ${item.quantity === 0 ? 'text-red-500' : textSecondary}`}>
+                  {item.quantity === 0 ? 'Stock Not Available' : `Qty: ${item.quantity || 'N/A'}`}
+                </span>
               </div>
             </div>
             <div className="flex gap-3">
