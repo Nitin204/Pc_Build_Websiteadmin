@@ -293,7 +293,8 @@ const OfflineOnlineData = () => {
           <div class="info-row"><span class="label">Order ID:</span> ${order.id}</div>
           <div class="info-row"><span class="label">Customer:</span> ${order.customer}</div>
           <div class="info-row"><span class="label">Email:</span> ${order.email}</div>
-          <div class="info-row"><span class="label">Date & Time:</span> ${order.dateTime}</div>
+         <div class="info-row"><span class="label">Date & Time:</span> ${order.orderDate ? new Date(order.orderDate).toLocaleString('en-IN') : ''}</div>
+    
           <div class="info-row"><span class="label">Payment Mode:</span> ${order.payment}</div>
         </div>
         
@@ -385,8 +386,8 @@ const OfflineOnlineData = () => {
   };
 
   return (
-    <div className="min-w-[320px] space-y-6">
-      <h1 className={`text-xs sm:text-base lg:text-xl font-black uppercase tracking-tighter ${text} mb-4`}>
+    <div className="w-full max-w-[285px] sm:max-w-none overflow-hidden">
+      <h1 className={`text-xs sm:text-base lg:text-xl font-black uppercase tracking-tighter ${text} mb-2 sm:mb-4`}>
         OFFLINE ORDER <span className="text-red-600">MANAGER</span>
       </h1>
 
@@ -398,14 +399,14 @@ const OfflineOnlineData = () => {
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           <div>
-            <label className={`block text-xs mb-1 ${textSecondary}`}>Customer Name</label>
+            <label className={` block text-xs mb-1 ${textSecondary}`}>Customer Name</label>
             <input
               type="text"
               name="customer"
               value={formData.customer}
               onChange={handleChange}
               placeholder="Customer Name"
-              className={`p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm ${cardBg} ${border} ${text}`}
+              className={`p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm border-1 border-red-500 ${cardBg} ${border} ${text}`}
             />
           </div>
 
@@ -417,7 +418,7 @@ const OfflineOnlineData = () => {
               value={formData.email}
               onChange={handleChange}
               placeholder="Email"
-              className={`p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm ${cardBg} ${border} ${text}`}
+              className={`border-1 border-red-500 p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm ${cardBg} ${border} ${text}`}
             />
           </div>
 
@@ -427,7 +428,7 @@ const OfflineOnlineData = () => {
               name="payment"
               value={formData.payment}
               onChange={handleChange}
-              className={`p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm ${cardBg} ${border} ${text}`}
+              className={`border-1 border-red-500 p-1.5 sm:p-3 rounded-lg w-full text-xs sm:text-sm ${cardBg} ${border} ${text}`}
             >
               <option value="">Select Payment Mode</option>
               {paymentModes.map((mode, index) => (
@@ -480,7 +481,7 @@ const OfflineOnlineData = () => {
                           const selectedProducts = Object.keys(newDetails).join(', ');
                           setFormData({...formData, productDetails: newDetails, product: selectedProducts});
                         }}
-                        className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500 focus:ring-2 flex-shrink-0"
+                        className="w-4 h-4 text-red-600 bg-gray-700 border-2 border-gray-400 rounded focus:ring-red-500 focus:ring-2 flex-shrink-0"
                       />
                       <span className={`text-sm sm:text-base font-medium ${text} truncate`} title={product}>{product}</span>
                     </label>
@@ -561,8 +562,8 @@ const OfflineOnlineData = () => {
             })}
           </div>
           {formData.product && (
-            <div className="mt-3 p-3 bg-green-900/20 border border-green-700 rounded-lg">
-              <span className="text-green-400 text-sm sm:text-base break-words block">Selected: {formData.product}</span>
+            <div className="mt-3 p-3 bg-black-900 border border-1 border-red-500 rounded-lg">
+              <span className="text-gray-100 text-sm sm:text-base break-words block">Selected: {formData.product}</span>
             </div>
           )}
         </div>
@@ -577,7 +578,7 @@ const OfflineOnlineData = () => {
               value={formData.amount}
               readOnly
               placeholder="Total Amount (Auto)"
-              className={`p-3 rounded-lg border w-full opacity-60 font-bold text-blue-400 text-sm ${cardBg} ${border}`}
+              className={`border-1 border-red-500 p-3 rounded-lg border w-full opacity-60 font-bold text-blue-400 text-sm ${cardBg} ${border}`}
             />
           </div>
 
@@ -589,7 +590,7 @@ const OfflineOnlineData = () => {
               value={formData.discount}
               onChange={handleChange}
               placeholder="Discount %"
-              className={`p-3 rounded-lg border w-full text-sm ${cardBg} ${border} ${text}`}
+              className={`border-1 border-red-500 p-3 rounded-lg border w-full text-sm ${cardBg} ${border} ${text}`}
             />
           </div>
 
@@ -601,7 +602,7 @@ const OfflineOnlineData = () => {
               value={formData.gst}
               onChange={handleChange}
               placeholder="GST %"
-              className={`p-3 rounded-lg border w-full text-sm ${cardBg} ${border} ${text}`}
+              className={`border-1 border-red-500 p-3 rounded-lg border w-full text-sm ${cardBg} ${border} ${text}`}
             />
           </div>
 
@@ -613,7 +614,7 @@ const OfflineOnlineData = () => {
               value={formData.total}
               readOnly
               placeholder="Final Total (Auto)"
-              className={`p-3 rounded-lg border opacity-60 w-full font-bold text-green-400 text-sm ${cardBg} ${border}`}
+              className={`border-1 border-red-500 p-3 rounded-lg border opacity-60 w-full font-bold text-green-400 text-sm ${cardBg} ${border}`}
             />
           </div>
 
@@ -723,7 +724,11 @@ const OfflineOnlineData = () => {
                   <td className={`py-1 px-0.5 ${textSecondary} text-center`}>{o.discount || 0}%</td>
                   <td className={`py-1 px-0.5 ${textSecondary} text-center`}>{o.gst || 0}%</td>
                   <td className={`py-1 px-0.5 ${textSecondary} truncate`}>{o.payment}</td>
-                  <td className={`py-1 px-0.5 ${textSecondary} truncate text-xs`} title={o.dateTime || ''}>{o.dateTime || ''}</td>
+                <td className={`py-1 px-0.5 ${textSecondary} truncate text-xs`} title={o.orderDate || ''}>
+  {o.orderDate ? new Date(o.orderDate).toLocaleString('en-IN') : ''}
+</td>
+
+
 
                   <td className="py-1 px-0.5">
                     <div className="flex gap-0.5 justify-center">
@@ -821,7 +826,10 @@ const OfflineOnlineData = () => {
                 </div>
                 {o.dateTime && (
                   <div className={`${textSecondary} flex flex-col gap-1 mt-2`}>
-                    <span className="font-medium">Date & Time:</span> 
+                   <span className={`${text} text-xs sm:text-sm`}>
+  {o.orderDate ? new Date(o.orderDate).toLocaleString('en-IN') : ''}
+</span>
+
                     <span className={`${text} text-xs sm:text-sm`}>{o.dateTime}</span>
                   </div>
                 )}

@@ -50,29 +50,7 @@ export default function Navbar({ setIsOpen, onLogout }) {
             {isDark ? <Sun size={18} className="text-orange-400" /> : <Moon size={18} className="text-indigo-600" />}
           </button>
           
-          {/* Notifications & Other Icons */}
-          <div className="relative cursor-pointer" onClick={() => setIsNotificationOpen(!isNotificationOpen)}>
-            <Bell size={18} className={textSecondary} />
-            <span className="absolute -top-1 -right-1 bg-red-600 text-[9px] rounded-full w-3 h-3 flex items-center justify-center font-bold">3</span>
-            {isNotificationOpen && (
-              <div className={`absolute right-0 top-8 w-64 rounded-xl shadow-xl z-50 ${cardBg} ${border}`}>
-                <div className={`p-3 border-b ${border}`}>
-                  <h3 className={`font-bold text-xs ${text}`}>Notifications</h3>
-                </div>
-                <div className="p-2 space-y-2">
-                  <div className={`p-2 rounded text-xs transition-colors hover:bg-opacity-50 ${textSecondary} ${
-                    isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                  }`}>New order received</div>
-                  <div className={`p-2 rounded text-xs transition-colors hover:bg-opacity-50 ${textSecondary} ${
-                    isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                  }`}>Customer inquiry</div>
-                  <div className={`p-2 rounded text-xs transition-colors hover:bg-opacity-50 ${textSecondary} ${
-                    isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
-                  }`}>System update</div>
-                </div>
-              </div>
-            )}
-          </div>
+          
           
           <button onClick={onLogout} className={`hidden sm:flex items-center cursor-pointer gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[10px] sm:text-xs transition ${
             isDark ? 'bg-[#25282c] hover:bg-gray-700' : 'bg-gray-100 hover:bg-gray-200'

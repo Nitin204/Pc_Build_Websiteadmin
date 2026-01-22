@@ -124,7 +124,7 @@ const StatsGrid = () => {
         <div
           key={i}
           className={`p-3 sm:p-4 lg:p-6 rounded-2xl text-center transition-all hover:scale-105 ${cardBg} ${border} ${
-            stat.active ? 'border-b-4 border-b-red-600 shadow-lg shadow-red-900/10' : ''
+            stat.active ? 'border-b-3  border-b-red-600 shadow-lg shadow-red-900/10' : ''
           }`}
         >
           <p className={`text-[10px] uppercase tracking-widest mb-2 font-bold ${textSecondary}`}>
@@ -191,7 +191,7 @@ const RecentOrders = () => {
   }, []);
 
   return (
-    <div className={`p-3 sm:p-4 lg:p-6 rounded-2xl border-b-4 border-b-red-600 shadow-lg shadow-red-900/10 ${cardBg} ${border}`}>
+    <div className={`p-3 sm:p-4 lg:p-6 rounded-2xl border-b-4  ${cardBg} ${border}`}>
       <h4 className={`text-sm font-bold mb-6 flex justify-between uppercase tracking-wider ${textSecondary}`}>
         Recent PC Orders
       </h4>

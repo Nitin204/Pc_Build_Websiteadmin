@@ -183,9 +183,9 @@ const AccessoriesManager = () => {
                   {formData.image ? (
                     <img src={formData.image} alt="preview" className="h-12 rounded object-contain" />
                   ) : (
-                    <div className={`flex items-center gap-1 ${textSecondary}`}>
+                    <div className={`flex items-center gap-1  ${textSecondary}`}>
                       <Upload size={14} />
-                      <span className="text-[8px] font-black uppercase">Upload</span>
+                      <span className="text-[8px] font-black uppercase ">Upload</span>
                     </div>
                   )}
                 </div>
@@ -193,29 +193,29 @@ const AccessoriesManager = () => {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className={`text-[8px] font-black uppercase ${textSecondary}`}>Item Name</label>
-                  <input required type="text" className={`w-full rounded-lg p-1.5 focus:border-red-600 outline-none text-xs ${cardBg} ${border} ${text}`} 
+                  <input required type="text" className={`w-full rounded-lg p-1.5 border-1 border-red-500 outline-none text-xs ${cardBg} ${border} ${text}`} 
                     value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
                 </div>
                 <div>
                   <label className={`text-[8px] font-black uppercase ${textSecondary}`}>Category</label>
-                  <select className={`w-full rounded-lg p-1.5 focus:border-red-600 outline-none text-xs ${cardBg} ${border} ${text}`}
+                  <select className={`w-full rounded-lg p-1.5 border-1 border-red-500 outline-none text-xs ${cardBg} ${border} ${text}`}
                     value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})}>
                     {tabs.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
                 <div className="col-span-2">
                   <label className={`text-[8px] font-black uppercase ${textSecondary}`}>Specifications</label>
-                  <textarea required rows="1" className={`w-full rounded-lg p-1.5 focus:border-red-600 outline-none text-[9px] ${cardBg} ${border} ${text}`} 
+                  <textarea required rows="1" className={`w-full rounded-lg p-1.5 border-1 border-red-500 outline-none text-[9px] ${cardBg} ${border} ${text}`} 
                     value={formData.specs} onChange={(e) => setFormData({...formData, specs: e.target.value})} />
                 </div>
                 <div>
                   <label className={`text-[8px] font-black uppercase ${textSecondary}`}>Price</label>
-                  <input required type="number" className={`w-full rounded-lg p-1.5 focus:border-red-600 outline-none text-xs ${cardBg} ${border} ${text}`} 
+                  <input required type="number" className={`w-full rounded-lg p-1.5 border-1 border-red-500 outline-none text-xs ${cardBg} ${border} ${text}`} 
                     value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} />
                 </div>
                 <div>
                   <label className={`text-[8px] font-black uppercase ${textSecondary}`}>Quantity</label>
-                  <input required type="number" className={`w-full rounded-lg p-1.5 focus:border-red-600 outline-none text-xs ${cardBg} ${border} ${text}`} 
+                  <input required type="number" className={`w-full rounded-lg p-1.5 border-1 border-red-500 outline-none text-xs ${cardBg} ${border} ${text}`} 
                     value={formData.quantity} onChange={(e) => setFormData({...formData, quantity: e.target.value})} placeholder="Stock Qty" />
                 </div>
               </div>
