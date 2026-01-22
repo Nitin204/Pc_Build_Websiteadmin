@@ -179,7 +179,7 @@ const Login = ({ onLogin }) => {
 
           {/* Password */}
           <div>
-            <label className={`block text-sm mb-2 ${textSecondary}`}>Password</label>
+            <label className={`block text-sm mb-2 ${textSecondary}`}>Passsword</label>
             <div className="relative">
               <Lock className={`absolute left-3 top-1/2 -translate-y-1/2 ${textSecondary}`} size={18} />
               <input
