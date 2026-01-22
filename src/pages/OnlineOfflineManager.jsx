@@ -386,7 +386,7 @@ const OfflineOnlineData = () => {
   };
 
   return (
-    <div className="max-w-[320px] sm:max-w-none overflow-hidden">
+    <div className="w-[320px] sm:max-w-none overflow-hidden">
       <h1 className={`text-xs sm:text-base lg:text-xl font-black uppercase tracking-tighter ${text} mb-2 sm:mb-4`}>
         OFFLINE ORDER <span className="text-red-600">MANAGER</span>
       </h1>
