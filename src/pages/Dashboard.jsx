@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line, Legend } from 'recharts';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
 
@@ -8,7 +8,7 @@ const API_URL = "https://pc-build-websiteabackend-2.onrender.com/api";
 
 
 // Sales Trend Chart Component
-const SalesTrend = ({ range }) => {
+const SalesTrend = ({ range, chartType }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -53,14 +53,26 @@ const SalesTrend = ({ range }) => {
   return (
     <div className="w-full h-[160px] sm:h-[200px] lg:h-[220px] min-h-[160px] sm:min-h-[200px] lg:min-h-[220px]">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" vertical={false} />
-          <XAxis dataKey="name" stroke="#666" fontSize={10} />
-          <YAxis stroke="#666" fontSize={10} />
-          <Tooltip />
-          <Bar dataKey="online" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-          <Bar dataKey="offline" fill="#ef4444" radius={[4, 4, 0, 0]} />
-        </BarChart>
+        {chartType === 'line' ? (
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" vertical={false} />
+            <XAxis dataKey="name" stroke="#666" fontSize={10} />
+            <YAxis stroke="#666" fontSize={10} />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="online" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+            <Line type="monotone" dataKey="offline" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} activeDot={{ r: 5 }} />
+          </LineChart>
+        ) : (
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" vertical={false} />
+            <XAxis dataKey="name" stroke="#666" fontSize={10} />
+            <YAxis stroke="#666" fontSize={10} />
+            <Tooltip />
+            <Bar dataKey="online" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="offline" fill="#ef4444" radius={[4, 4, 0, 0]} />
+          </BarChart>
+        )}
       </ResponsiveContainer>
     </div>
   );
@@ -142,38 +154,41 @@ const ChartsSection = () => {
   const [timeRange, setTimeRange] = useState('30D');
   const { cardBg, border, textSecondary, isDark } = useTheme();
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-1 gap-8 mb-8">
-      <div className={`p-3 sm:p-4 lg:p-6 rounded-2xl shadow-inner ${cardBg} ${border}`}>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
-          <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>
-            PC Component Sales Profit
-          </h4>
-          <div className="flex gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span className={textSecondary}>Online</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded"></div>
-              <span className={textSecondary}>Offline</span>
-            </div>
-          </div>
-          <div className={`flex p-1 rounded-lg ${isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-100 border-gray-200'} ${border}`}>
-            {['7D', '30D', '12M'].map(range => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${
-                  timeRange === range ? 'bg-red-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
+  const legend = (
+    <div className="flex gap-4 text-xs">
+      <div className="flex items-center gap-2"><div className="w-3 h-3 bg-blue-500 rounded"></div><span className={textSecondary}>Online</span></div>
+      <div className="flex items-center gap-2"><div className="w-3 h-3 bg-red-500 rounded"></div><span className={textSecondary}>Offline</span></div>
+    </div>
+  );
+
+return (
+    <div className="space-y-4 mb-8">
+      <div className="flex justify-between items-center">
+        <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>PC Component Sales Profit</h4>
+        <div className={`flex p-1 rounded-lg ${isDark ? 'bg-[#121417] border-gray-800' : 'bg-gray-100 border-gray-200'} ${border}`}>
+          {['7D', '30D', '12M'].map(range => (
+            <button key={range} onClick={() => setTimeRange(range)}
+              className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${
+                timeRange === range ? 'bg-red-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+              }`}>{range}</button>
+          ))}
         </div>
-        <SalesTrend range={timeRange} />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className={`p-3 sm:p-4 lg:p-6 rounded-2xl shadow-inner ${cardBg} ${border}`}>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>Bar Chart</h4>
+            {legend}
+          </div>
+          <SalesTrend range={timeRange} chartType="bar" />
+        </div>
+        <div className={`p-3 sm:p-4 lg:p-6 rounded-2xl shadow-inner ${cardBg} ${border}`}>
+          <div className="flex justify-between items-center mb-4">
+            <h4 className={`text-sm font-bold uppercase tracking-tighter ${textSecondary}`}>Line Chart</h4>
+            {legend}
+          </div>
+          <SalesTrend range={timeRange} chartType="line" />
+        </div>
       </div>
     </div>
   );
